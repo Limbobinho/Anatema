@@ -144,6 +144,15 @@ body {
     }
 
 
+@media (max-width: 720px) {
+
+    .sheet {
+        grid-template-columns: 1fr;
+        padding: 22px;
+    }
+}
+
+
 /* =========================================================
    CANTOS
    ========================================================= */
@@ -540,25 +549,31 @@ body {
     display: flex;
     align-items: center;
     justify-content: flex-end;
-    gap: 5px;
+    gap: 7px;
     padding: 2px 0;
 }
 
 
+/*
+   O nome agora pode ocupar todo o espaço disponível.
+   Antes o ellipsis escondia o final das palavras quando
+   a coluna ficava apertada.
+*/
+
 .apt-name {
-    flex: 1;
+    flex: 1 1 auto;
     min-width: 0;
-    overflow: hidden;
+    overflow: visible;
     color: var(--ink-bright);
     text-align: right;
-    text-overflow: ellipsis;
     white-space: nowrap;
     font-size: clamp(0.82rem, 1.45vw, 1.01rem);
+    line-height: 1.15;
 }
 
 
 .apt-pips {
-    flex-shrink: 0;
+    flex: 0 0 auto;
     display: flex;
     gap: 3px;
 }
@@ -984,6 +999,16 @@ body {
     .notes {
         min-height: 180px;
     }
+
+
+    .apt-name {
+        font-size: 0.94rem;
+    }
+
+
+    .apt-row {
+        gap: 8px;
+    }
 }
 
 
@@ -1057,11 +1082,14 @@ body {
 
     .apt-row {
         padding: 3px 0;
+        gap: 8px;
     }
 
 
     .apt-name {
-        font-size: 0.92rem;
+        font-size: 0.94rem;
+        overflow: visible;
+        white-space: nowrap;
     }
 
 
@@ -1141,7 +1169,8 @@ body {
 
 
     .apt-name {
-        font-size: 0.84rem;
+        font-size: 0.87rem;
+        letter-spacing: -0.01em;
     }
 
 
