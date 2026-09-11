@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>ANATEMA — Ficha de Personagem</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Caveat:wght@500;600;700&family=Special+Elite&display=swap"
+          rel="stylesheet">
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <div class="toolbar">
+
+        <button id="btnNovo">
+            Nova ficha
+        </button>
+
+        <button id="btnExportar">
+            Exportar
+        </button>
+
+        <label class="btnImportar">
+            Importar
+            <input type="file"
+                   id="inputImportar"
+                   accept="application/json"
+                   hidden>
+        </label>
+
+        <span class="status" id="status"></span>
+
+    </div>
+
+
+    <main class="sheet">
+
+        <div class="corner corner-tl"></div>
+        <div class="corner corner-tr"></div>
+        <div class="corner corner-bl"></div>
+        <div class="corner corner-br"></div>
+
+
+        <!-- COLUNA ESQUERDA -->
+
+        <section class="col col-left">
+
+            <div class="field-row">
+
+                <label class="field field-name">
+
+                    <span class="tag">
+                        Nome
+                    </span>
+
+                    <span class="field-symbol">✦</span>
+
+                    <input type="text"
+                           id="nome"
+                           placeholder="nome do personagem">
+
+                </label>
+
+            </div>
+
+
+            <div class="field-row">
+
+                <label class="field field-name">
+
+                    <span class="tag">
+                        Jogador
+                    </span>
+
+                    <span class="field-symbol">✦</span>
+
+                    <input type="text"
+                           id="jogador"
+                           placeholder="nome do jogador">
+
+                </label>
+
+            </div>
+
+
+            <!-- VIDA / DEFESA -->
+
+            <div class="stat-row">
+
+                <div class="stat-box">
+
+                    <span class="stat-label">
+                        Vida
+                    </span>
+
+                    <div class="ornament-line"></div>
+
+                    <div class="stat-values">
+
+                        <div class="stat-value-group">
+
+                            <span class="stat-minmax">
+                                Min
+                            </span>
+
+                            <input type="number"
+                                   id="vidaAtual"
+                                   class="stat-input"
+                                   min="0">
+
+                        </div>
+
+                        <span class="stat-sep">
+                            /
+                        </span>
+
+                        <div class="stat-value-group">
+
+                            <span class="stat-minmax">
+                                Máx
+                            </span>
+
+                            <input type="number"
+                                   id="vidaMax"
+                                   class="stat-input"
+                                   min="0">
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div class="stat-box">
+
+                    <span class="stat-label">
+                        Defesa
+                    </span>
+
+                    <div class="ornament-line"></div>
+
+                    <div class="stat-values">
+
+                        <input type="number"
+                               id="defesa"
+                               class="stat-input stat-input-single"
+                               min="0">
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- AFLIÇÃO -->
+
+            <div class="aflicao-box">
+
+                <span class="aflicao-title">
+                    Aflição
+                </span>
+
+                <div class="aflicao-decoration">
+                    ◆
+                </div>
+
+                <div class="aflicao-pips"
+                     id="aflicaoGrid"></div>
+
+            </div>
+
+
+            <!-- APTIDÕES -->
+
+            <div class="section">
+
+                <h2 class="section-title">
+                    <span>✦</span>
+                    Aptidões
+                    <span>✦</span>
+                </h2>
+
+                <div class="aptidoes-grid"
+                     id="aptidoesGrid"></div>
+
+            </div>
+
+
+            <!-- INVENTÁRIO -->
+
+            <div class="section">
+
+                <h2 class="section-title">
+                    <span>✦</span>
+                    Inventário
+                    <span>✦</span>
+                </h2>
+
+                <div class="inventario">
+
+                    <label class="inv-label">
+                        Mãos
+                    </label>
+
+                    <div class="inv-row">
+
+                        <div class="inventory-hand">
+                            <span class="slot-caption">
+                                Esq.
+                            </span>
+
+                            <input type="text"
+                                   class="inv-input"
+                                   data-inv="maoEsq"
+                                   placeholder="mão esquerda">
+                        </div>
+
+                        <div class="inventory-hand">
+                            <span class="slot-caption">
+                                Dir.
+                            </span>
+
+                            <input type="text"
+                                   class="inv-input"
+                                   data-inv="maoDir"
+                                   placeholder="mão direita">
+                        </div>
+
+                    </div>
+
+
+                    <label class="inv-label">
+                        Corpo
+                    </label>
+
+                    <div class="body-slot">
+
+                        <span class="slot-caption">
+                            Equipamento
+                        </span>
+
+                        <input type="text"
+                               class="inv-input inv-full"
+                               data-inv="corpo"
+                               placeholder="armadura, roupas...">
+
+                    </div>
+
+
+                    <label class="inv-label">
+                        Mochila
+                    </label>
+
+                    <div class="mochila-grid"
+                         id="mochilaGrid"></div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- COLUNA DIREITA -->
+
+        <section class="col col-right">
+
+            <div class="right-panel">
+
+
+                <!-- VANTAGENS -->
+
+                <div class="section">
+
+                    <h2 class="section-title">
+                        <span>✦</span>
+                        Vantagens
+                        <span>✦</span>
+                    </h2>
+
+                    <textarea class="panel-textarea"
+                              id="vantagens"
+                              placeholder="talentos, poderes, rituais..."></textarea>
+
+                </div>
+
+
+                <!-- EMBLEMA -->
+
+                <div class="emblem"
+                     aria-hidden="true">
+
+                    <div class="emblem-top">
+                        ── ◆ ──
+                    </div>
+
+                    <div class="emblem-symbol">
+
+                        <div class="emblem-circle"></div>
+
+                        <div class="emblem-cross-v"></div>
+                        <div class="emblem-cross-h"></div>
+
+                    </div>
+
+                    <div class="emblem-title">
+                        ANATEMA
+                    </div>
+
+                    <div class="emblem-bottom">
+                        ✦
+                    </div>
+
+                </div>
+
+
+                <!-- ANOTAÇÕES -->
+
+                <div class="section notes-section">
+
+                    <h2 class="section-title">
+                        <span>✦</span>
+                        Anotações
+                        <span>✦</span>
+                    </h2>
+
+                    <textarea class="panel-textarea notes"
+                              id="anotacoes"
+                              placeholder="anotações livres..."></textarea>
+
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+
+    <script src="script.js"></script>
+
+</body>
+</html>

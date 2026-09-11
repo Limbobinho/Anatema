@@ -1,0 +1,1162 @@
+:root {
+    --paper: #0c0b0a;
+    --paper-light: #141210;
+    --paper-dark: #070706;
+    --panel: #11100e;
+    --panel-light: #181612;
+    --ink: #e7e1d2;
+    --ink-bright: #f2eee3;
+    --ink-soft: #b6ad9a;
+    --ink-dim: #817969;
+    --line: #5c5548;
+    --line-soft: rgba(133, 123, 103, 0.42);
+    --gold: #b9aa82;
+    --gold-dark: #71654b;
+    --blood: #711b1b;
+    --blood-dark: #3c0c0d;
+    --blood-light: #962525;
+    --black: #050504;
+    --shadow: rgba(0, 0, 0, 0.95);
+    --radius: 1px;
+    font-size: 16px;
+}
+
+
+/* =========================================================
+   RESET / BASE
+   ========================================================= */
+
+* {
+    box-sizing: border-box;
+}
+
+
+html {
+    width: 100%;
+    min-width: 0;
+    background: #050504;
+}
+
+
+body {
+    width: 100%;
+    min-width: 0;
+    min-height: 100vh;
+    margin: 0;
+    padding: clamp(10px, 3vw, 28px) clamp(8px, 2vw, 16px) clamp(35px, 6vw, 70px);
+    overflow-x: hidden;
+    color: var(--ink);
+    font-family: 'Caveat', cursive;
+    background: radial-gradient( ellipse at 50% 0%, rgba(80, 65, 45, 0.10), transparent 35% ), radial-gradient( ellipse at 15% 90%, rgba(80, 15, 12, 0.07), transparent 35% ), #050504;
+    background-attachment: fixed;
+}
+
+
+/* =========================================================
+   TOOLBAR
+   ========================================================= */
+
+.toolbar {
+    width: min(100%, 1100px);
+    margin: 0 auto clamp(10px, 2vw, 18px);
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    flex-wrap: wrap;
+    font-family: 'Special Elite', monospace;
+    font-size: clamp(0.58rem, 0.75vw, 0.68rem);
+}
+
+
+    .toolbar button,
+    .btnImportar {
+        position: relative;
+        padding: clamp(6px, 1vw, 8px) clamp(9px, 1.5vw, 14px);
+        border: 1px solid #39352e;
+        border-radius: 1px;
+        background: linear-gradient( to bottom, #24221e, #11100e );
+        color: var(--ink-soft);
+        cursor: pointer;
+        font-family: inherit;
+        font-size: inherit;
+        letter-spacing: 0.04em;
+        box-shadow: inset 0 1px rgba(255,255,255,0.05), 0 3px 9px rgba(0,0,0,0.75);
+    }
+
+
+        .toolbar button:hover,
+        .btnImportar:hover {
+            border-color: var(--gold-dark);
+            color: var(--ink-bright);
+            background: linear-gradient( to bottom, #302d27, #171512 );
+        }
+
+
+.status {
+    margin-left: auto;
+    color: var(--ink-dim);
+    font-size: 0.68rem;
+    opacity: 0.75;
+}
+
+
+/* =========================================================
+   FICHA PRINCIPAL
+   ========================================================= */
+
+.sheet {
+    position: relative;
+    width: min( 100%, 1100px );
+    min-width: 0;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+    gap: clamp(12px, 2vw, 20px);
+    padding: clamp(16px, 3vw, 31px);
+    overflow: hidden;
+    background: radial-gradient( ellipse at 12% 5%, rgba(145, 130, 96, 0.055), transparent 30% ), radial-gradient( ellipse at 90% 20%, rgba(120, 20, 15, 0.035), transparent 30% ), radial-gradient( ellipse at 30% 95%, rgba(130, 115, 85, 0.035), transparent 35% ), #0c0b0a;
+    border: 2px solid #292620;
+    box-shadow: 0 35px 100px var(--shadow), inset 0 0 80px rgba(0,0,0,0.85), inset 0 0 2px rgba(255,255,255,0.06);
+}
+
+
+    /* =========================================================
+   TEXTURA DA PÁGINA
+   ========================================================= */
+
+    .sheet::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        background: radial-gradient( ellipse at 8% 18%, rgba(170, 150, 110, 0.045), transparent 15% ), radial-gradient( ellipse at 92% 75%, rgba(150, 25, 20, 0.035), transparent 18% ), radial-gradient( ellipse at 55% 50%, rgba(255,255,255,0.015), transparent 45% );
+    }
+
+
+    .sheet::after {
+        content: "";
+        position: absolute;
+        inset: clamp(6px, 1vw, 8px);
+        pointer-events: none;
+        border: 1px solid rgba(133, 123, 103, 0.35);
+        box-shadow: inset 0 0 0 5px rgba(0,0,0,0.22), inset 0 0 0 6px rgba(133,123,103,0.11);
+        z-index: 0;
+    }
+
+
+/* =========================================================
+   CANTOS
+   ========================================================= */
+
+.corner {
+    position: absolute;
+    width: clamp(20px, 3vw, 29px);
+    height: clamp(20px, 3vw, 29px);
+    z-index: 3;
+    pointer-events: none;
+    opacity: 0.72;
+}
+
+
+    .corner::before,
+    .corner::after {
+        content: "";
+        position: absolute;
+        background: var(--gold-dark);
+    }
+
+
+    .corner::before {
+        width: 100%;
+        height: 1px;
+    }
+
+
+    .corner::after {
+        width: 1px;
+        height: 100%;
+    }
+
+
+.corner-tl {
+    top: clamp(10px, 1.7vw, 16px);
+    left: clamp(10px, 1.7vw, 16px);
+}
+
+
+.corner-tr {
+    top: clamp(10px, 1.7vw, 16px);
+    right: clamp(10px, 1.7vw, 16px);
+}
+
+
+.corner-bl {
+    bottom: clamp(10px, 1.7vw, 16px);
+    left: clamp(10px, 1.7vw, 16px);
+}
+
+
+.corner-br {
+    bottom: clamp(10px, 1.7vw, 16px);
+    right: clamp(10px, 1.7vw, 16px);
+}
+
+
+.corner-tl::before,
+.corner-tl::after {
+    top: 0;
+    left: 0;
+}
+
+
+.corner-tr::before,
+.corner-tr::after {
+    top: 0;
+    right: 0;
+}
+
+
+.corner-bl::before,
+.corner-bl::after {
+    bottom: 0;
+    left: 0;
+}
+
+
+.corner-br::before,
+.corner-br::after {
+    bottom: 0;
+    right: 0;
+}
+
+
+/* =========================================================
+   COLUNAS
+   ========================================================= */
+
+.col {
+    position: relative;
+    z-index: 2;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: clamp(9px, 1.5vw, 13px);
+}
+
+
+/* =========================================================
+   CAMPOS
+   ========================================================= */
+
+.field-row {
+    display: flex;
+    min-width: 0;
+}
+
+
+.field {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: clamp(5px, 1vw, 8px);
+    min-height: 36px;
+    padding: 5px clamp(7px, 1.2vw, 10px);
+    background: rgba(255,255,255,0.015);
+    border: 1px solid var(--line);
+    box-shadow: inset 0 -5px 15px rgba(0,0,0,0.25);
+}
+
+
+    .field .tag {
+        flex-shrink: 0;
+        color: var(--ink-soft);
+        font-family: 'Cinzel', serif;
+        font-size: clamp(0.58rem, 0.8vw, 0.71rem);
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        white-space: nowrap;
+    }
+
+
+.field-symbol {
+    flex-shrink: 0;
+    color: var(--blood);
+    font-size: 0.48rem;
+}
+
+
+.field input {
+    width: 100%;
+    min-width: 0;
+    padding: 0 4px;
+    border: none;
+    border-bottom: 1px solid var(--line-soft);
+    outline: none;
+    background: transparent;
+    color: var(--ink-bright);
+    font-family: 'Caveat', cursive;
+    font-size: clamp(1rem, 1.8vw, 1.18rem);
+}
+
+
+    .field input::placeholder {
+        color: var(--ink-dim);
+    }
+
+
+/* =========================================================
+   VIDA / DEFESA
+   ========================================================= */
+
+.stat-row {
+    display: flex;
+    gap: clamp(7px, 1vw, 10px);
+}
+
+
+.stat-box {
+    flex: 1;
+    min-width: 0;
+    padding: 7px clamp(6px, 1vw, 10px) 9px;
+    text-align: center;
+    background: rgba(255,255,255,0.018);
+    border: 1px solid var(--line);
+    box-shadow: inset 0 0 18px rgba(0,0,0,0.28);
+}
+
+
+.stat-label {
+    display: block;
+    color: var(--ink-soft);
+    font-family: 'Cinzel', serif;
+    font-size: clamp(0.58rem, 0.8vw, 0.77rem);
+    font-weight: 700;
+    letter-spacing: 0.11em;
+    text-transform: uppercase;
+}
+
+
+.ornament-line {
+    width: 70%;
+    height: 1px;
+    margin: 4px auto 5px;
+    background: linear-gradient( to right, transparent, var(--gold-dark), transparent );
+}
+
+
+.stat-values {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: clamp(3px, 0.6vw, 6px);
+}
+
+
+.stat-value-group {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+
+.stat-minmax {
+    color: var(--ink-dim);
+    font-family: 'Cinzel', serif;
+    font-size: 0.45rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+
+.stat-input {
+    width: clamp(35px, 5vw, 48px);
+    padding: 0;
+    border: none;
+    border-bottom: 1px solid var(--gold-dark);
+    outline: none;
+    background: transparent;
+    color: var(--ink-bright);
+    font-family: 'Caveat', cursive;
+    font-size: clamp(1.1rem, 2vw, 1.4rem);
+    font-weight: 700;
+    text-align: center;
+}
+
+
+.stat-input-single {
+    width: clamp(50px, 7vw, 70px);
+}
+
+
+.stat-sep {
+    padding-top: 7px;
+    color: var(--ink-dim);
+    font-size: 1.2rem;
+}
+
+
+/* =========================================================
+   AFLIÇÃO
+   ========================================================= */
+
+.aflicao-box {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: clamp(6px, 1vw, 10px);
+    min-height: 36px;
+    min-width: 0;
+    padding: 4px clamp(7px, 1.2vw, 11px);
+    background: linear-gradient( to right, rgba(80,10,10,0.10), rgba(255,255,255,0.012), rgba(80,10,10,0.10) );
+    border: 1px solid var(--line);
+    box-shadow: inset 0 0 15px rgba(0,0,0,0.4);
+}
+
+
+    .aflicao-box::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 3px;
+        background: linear-gradient( to bottom, transparent, var(--blood), transparent );
+    }
+
+
+.aflicao-title {
+    flex-shrink: 0;
+    color: var(--ink-soft);
+    font-family: 'Cinzel', serif;
+    font-size: clamp(0.58rem, 0.8vw, 0.76rem);
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+
+
+.aflicao-decoration {
+    margin-right: auto;
+    color: var(--blood);
+    font-size: 0.4rem;
+}
+
+
+.aflicao-pips {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+}
+
+
+    .aflicao-pips .apt-row {
+        display: flex;
+        align-items: center;
+    }
+
+
+    .aflicao-pips .apt-pips {
+        display: flex;
+        gap: 4px;
+    }
+
+
+    .aflicao-pips .pip {
+        width: 15px;
+        height: 15px;
+    }
+
+
+/* =========================================================
+   SEÇÕES
+   ========================================================= */
+
+.section {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    min-width: 0;
+}
+
+
+.section-title {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin: 0;
+    padding: 5px 8px;
+    background: linear-gradient( to bottom, rgba(145,130,100,0.07), rgba(0,0,0,0.12) );
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+    color: var(--ink-bright);
+    font-family: 'Cinzel', serif;
+    font-size: clamp(0.58rem, 0.8vw, 0.77rem);
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+}
+
+
+    .section-title::before,
+    .section-title::after {
+        content: "†";
+        color: var(--blood);
+        font-size: 0.55rem;
+        opacity: 0.85;
+    }
+
+
+    .section-title span {
+        display: none;
+    }
+
+
+/* =========================================================
+   APTIDÕES
+   ========================================================= */
+
+.aptidoes-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-rows: repeat(7, auto);
+    grid-auto-flow: column;
+    gap: 3px clamp(7px, 1.5vw, 15px);
+    min-width: 0;
+    padding: 9px clamp(6px, 1vw, 10px);
+    background: rgba(0,0,0,0.16);
+    border: 1px solid var(--line);
+    box-shadow: inset 0 0 20px rgba(0,0,0,0.38);
+}
+
+
+.apt-row {
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 5px;
+    padding: 2px 0;
+}
+
+
+.apt-name {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    color: var(--ink-bright);
+    text-align: right;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: clamp(0.82rem, 1.45vw, 1.01rem);
+}
+
+
+.apt-pips {
+    flex-shrink: 0;
+    display: flex;
+    gap: 3px;
+}
+
+
+.pip {
+    width: clamp(11px, 1.5vw, 14px);
+    height: clamp(11px, 1.5vw, 14px);
+    padding: 0;
+    flex-shrink: 0;
+    border-radius: 50%;
+    border: 1.3px solid #766d5e;
+    background: rgba(255,255,255,0.025);
+    cursor: pointer;
+    transition: transform 0.12s ease, background 0.12s ease;
+}
+
+
+    .pip:hover {
+        transform: scale(1.12);
+        border-color: var(--blood-light);
+    }
+
+
+    .pip.filled {
+        background: radial-gradient( circle at 35% 30%, var(--blood-light), var(--blood-dark) );
+        border-color: #741515;
+        box-shadow: 0 0 5px rgba(110,20,20,0.35);
+    }
+
+
+/* =========================================================
+   INVENTÁRIO
+   ========================================================= */
+
+.inventario {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 0;
+    padding: clamp(7px, 1.2vw, 10px);
+    background: rgba(0,0,0,0.15);
+    border: 1px solid var(--line);
+    box-shadow: inset 0 0 20px rgba(0,0,0,0.34);
+}
+
+
+.inv-label {
+    margin-top: 5px;
+    color: var(--gold);
+    font-family: 'Cinzel', serif;
+    font-size: clamp(0.5rem, 0.7vw, 0.62rem);
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+
+
+    .inv-label:first-child {
+        margin-top: 0;
+    }
+
+
+.inv-row {
+    display: flex;
+    gap: clamp(5px, 1vw, 8px);
+    min-width: 0;
+}
+
+
+.inventory-hand {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    border-bottom: 1px solid var(--line-soft);
+}
+
+
+.slot-caption {
+    flex-shrink: 0;
+    color: var(--ink-dim);
+    font-family: 'Cinzel', serif;
+    font-size: 0.44rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+
+.inv-input,
+.inv-full {
+    flex: 1;
+    min-width: 0;
+    width: 100%;
+    padding: 2px 0;
+    border: none;
+    border-bottom: 1px solid var(--line-soft);
+    outline: none;
+    background: transparent;
+    color: var(--ink-bright);
+    font-family: 'Caveat', cursive;
+    font-size: clamp(0.88rem, 1.5vw, 1.05rem);
+}
+
+
+.inventory-hand .inv-input {
+    border-bottom: none;
+}
+
+
+.inv-input::placeholder {
+    color: var(--ink-dim);
+}
+
+
+.body-slot {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+    padding-bottom: 2px;
+    border-bottom: 1px solid var(--line-soft);
+}
+
+
+/* =========================================================
+   MOCHILA
+   ========================================================= */
+
+.mochila-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 5px;
+    min-width: 0;
+    margin-top: 2px;
+}
+
+
+.mochila-slot {
+    position: relative;
+    display: flex;
+    align-items: center;
+    min-width: 0;
+    min-height: clamp(35px, 5vw, 43px);
+    padding: 3px clamp(3px, 0.7vw, 6px);
+    background: rgba(0,0,0,0.18);
+    border: 1px solid var(--line-soft);
+    box-shadow: inset 0 0 10px rgba(0,0,0,0.38);
+}
+
+
+    .mochila-slot::before {
+        content: "";
+        position: absolute;
+        top: 2px;
+        left: 2px;
+        width: 6px;
+        height: 6px;
+        border-top: 1px solid var(--gold-dark);
+        border-left: 1px solid var(--gold-dark);
+        opacity: 0.7;
+    }
+
+
+    .mochila-slot::after {
+        content: "";
+        position: absolute;
+        bottom: 2px;
+        right: 2px;
+        width: 6px;
+        height: 6px;
+        border-bottom: 1px solid var(--gold-dark);
+        border-right: 1px solid var(--gold-dark);
+        opacity: 0.7;
+    }
+
+
+    .mochila-slot input {
+        width: 100%;
+        min-width: 0;
+        border: none;
+        outline: none;
+        background: transparent;
+        color: var(--ink-bright);
+        font-family: 'Caveat', cursive;
+        font-size: clamp(0.78rem, 1.3vw, 0.95rem);
+        text-align: center;
+    }
+
+
+        .mochila-slot input::placeholder {
+            color: var(--ink-dim);
+            font-family: 'Cinzel', serif;
+            font-size: 0.4rem;
+            opacity: 0.8;
+        }
+
+
+/* =========================================================
+   PAINEL DIREITO
+   ========================================================= */
+
+.right-panel {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    gap: clamp(12px, 2vw, 18px);
+    min-width: 0;
+    height: 100%;
+    padding: clamp(8px, 1.5vw, 14px);
+    background: rgba(0,0,0,0.13);
+    border: 1px solid var(--line);
+    box-shadow: inset 0 0 30px rgba(0,0,0,0.48);
+}
+
+
+/* =========================================================
+   TEXTAREAS
+   ========================================================= */
+
+.panel-textarea {
+    width: 100%;
+    min-width: 0;
+    min-height: clamp(90px, 12vw, 105px);
+    padding: 7px 9px;
+    resize: vertical;
+    outline: none;
+    color: var(--ink-bright);
+    font-family: 'Caveat', cursive;
+    font-size: clamp(0.95rem, 1.6vw, 1.1rem);
+    line-height: clamp(22px, 3vw, 26px);
+    border: 1px solid var(--line-soft);
+    background: repeating-linear-gradient( to bottom, transparent 0, transparent 25px, rgba(166,153,126,0.13) 26px );
+}
+
+
+    .panel-textarea::placeholder {
+        color: var(--ink-dim);
+    }
+
+
+.notes {
+    min-height: clamp(140px, 22vw, 180px);
+}
+
+
+/* =========================================================
+   EMBLEMA
+   ========================================================= */
+
+.emblem {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: clamp(8px, 2vw, 13px) 0;
+    color: var(--ink);
+    opacity: 0.88;
+}
+
+
+.emblem-top,
+.emblem-bottom {
+    color: var(--blood);
+    font-family: 'Cinzel', serif;
+    font-size: 0.58rem;
+    letter-spacing: 0.16em;
+}
+
+
+.emblem-symbol {
+    position: relative;
+    width: clamp(48px, 7vw, 66px);
+    height: clamp(48px, 7vw, 66px);
+    margin: 6px 0 9px;
+    border: 1px solid var(--gold-dark);
+    transform: rotate(45deg);
+    box-shadow: inset 0 0 12px rgba(0,0,0,0.65);
+}
+
+
+    .emblem-symbol::before {
+        content: "";
+        position: absolute;
+        inset: 7px;
+        border: 1px solid var(--blood);
+        opacity: 0.65;
+    }
+
+
+.emblem-circle {
+    position: absolute;
+    top: 27.5%;
+    left: 27.5%;
+    width: 42%;
+    height: 42%;
+    border: 1px solid var(--gold);
+    border-radius: 50%;
+}
+
+
+.emblem-cross-v,
+.emblem-cross-h {
+    position: absolute;
+    background: var(--ink-soft);
+}
+
+
+.emblem-cross-v {
+    width: 1px;
+    height: 68%;
+    top: 16%;
+    left: 50%;
+}
+
+
+.emblem-cross-h {
+    width: 68%;
+    height: 1px;
+    top: 50%;
+    left: 16%;
+}
+
+
+.emblem-title {
+    color: var(--ink-bright);
+    font-family: 'Cinzel', serif;
+    font-size: clamp(0.85rem, 1.8vw, 1.12rem);
+    font-weight: 700;
+    letter-spacing: 0.31em;
+    margin-left: 0.31em;
+    text-align: center;
+}
+
+
+/* =========================================================
+   ANOTAÇÕES
+   ========================================================= */
+
+.notes-section {
+    flex: 1;
+    min-height: 0;
+}
+
+
+/* =========================================================
+   TABLET
+   ========================================================= */
+
+@media (max-width: 820px) {
+
+    .sheet {
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        gap: 12px;
+        padding: 20px;
+    }
+
+
+    .aptidoes-grid {
+        gap: 3px 8px;
+    }
+
+
+    .apt-name {
+        font-size: 0.86rem;
+    }
+
+
+    .pip {
+        width: 12px;
+        height: 12px;
+    }
+}
+
+
+/* =========================================================
+   CELULAR / RETRATO
+   ========================================================= */
+
+@media (max-width: 680px) {
+
+    body {
+        padding: 8px 6px 30px;
+    }
+
+
+    .toolbar {
+        width: 100%;
+        margin-bottom: 10px;
+    }
+
+
+    .status {
+        width: 100%;
+        margin-left: 0;
+        text-align: right;
+    }
+
+
+    .sheet {
+        width: 100%;
+        grid-template-columns: 1fr;
+        gap: 15px;
+        padding: 18px 14px;
+    }
+
+
+    .col {
+        gap: 11px;
+    }
+
+
+    .right-panel {
+        height: auto;
+        padding: 10px;
+    }
+
+
+    .notes {
+        min-height: 180px;
+    }
+}
+
+
+/* =========================================================
+   CELULAR PEQUENO
+   ========================================================= */
+
+@media (max-width: 440px) {
+
+    body {
+        padding: 5px 3px 24px;
+    }
+
+
+    .toolbar {
+        gap: 5px;
+    }
+
+
+        .toolbar button,
+        .btnImportar {
+            padding: 6px 9px;
+        }
+
+
+    .sheet {
+        padding: 15px 10px;
+    }
+
+
+    .field {
+        gap: 5px;
+        padding: 5px 7px;
+    }
+
+
+        .field .tag {
+            font-size: 0.56rem;
+            letter-spacing: 0.07em;
+        }
+
+
+    .field-symbol {
+        display: none;
+    }
+
+
+    .stat-row {
+        gap: 6px;
+    }
+
+
+    .stat-box {
+        padding: 6px 4px 8px;
+    }
+
+
+    .stat-values {
+        gap: 2px;
+    }
+
+
+    .aptidoes-grid {
+        grid-template-columns: 1fr;
+        grid-template-rows: none;
+        grid-auto-flow: row;
+        gap: 1px;
+        padding: 7px;
+    }
+
+
+    .apt-row {
+        padding: 3px 0;
+    }
+
+
+    .apt-name {
+        font-size: 0.92rem;
+    }
+
+
+    .pip {
+        width: 13px;
+        height: 13px;
+    }
+
+
+    .mochila-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+
+    .inv-row {
+        flex-direction: column;
+        gap: 5px;
+    }
+
+
+    .inventory-hand {
+        width: 100%;
+    }
+
+
+    .body-slot {
+        gap: 5px;
+    }
+
+
+    .slot-caption {
+        font-size: 0.4rem;
+    }
+
+
+    .section-title {
+        letter-spacing: 0.11em;
+    }
+
+
+    .panel-textarea {
+        font-size: 1rem;
+    }
+}
+
+
+/* =========================================================
+   CELULAR MUITO ESTREITO
+   ========================================================= */
+
+@media (max-width: 340px) {
+
+    .sheet {
+        padding: 13px 7px;
+    }
+
+
+    .field .tag {
+        font-size: 0.51rem;
+    }
+
+
+    .stat-minmax {
+        font-size: 0.4rem;
+    }
+
+
+    .stat-input {
+        width: 34px;
+        font-size: 1.05rem;
+    }
+
+
+    .stat-input-single {
+        width: 48px;
+    }
+
+
+    .apt-name {
+        font-size: 0.84rem;
+    }
+
+
+    .pip {
+        width: 11px;
+        height: 11px;
+    }
+
+
+    .mochila-slot {
+        min-height: 38px;
+    }
+
+
+    .section-title {
+        font-size: 0.56rem;
+    }
+}
