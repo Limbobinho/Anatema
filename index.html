@@ -17,6 +17,13 @@
 
 <body>
 
+    <div class="watching-eyes" aria-hidden="true">
+        <div class="watching-eye eye-a"><span class="eye-pupil"></span></div>
+        <div class="watching-eye eye-b"><span class="eye-pupil"></span></div>
+        <div class="watching-eye eye-c"><span class="eye-pupil"></span></div>
+        <div class="watching-eye eye-d"><span class="eye-pupil"></span></div>
+    </div>
+
     <!-- =========================================================
          BARRA SUPERIOR
          ========================================================= -->
@@ -313,76 +320,17 @@
 
                 <div class="inventario">
 
-                    <!-- MÃOS -->
-
-                    <label class="inv-label">
-                        Mãos
-                    </label>
-
-                    <div class="inv-row">
-
-                        <div class="inventory-hand">
-
-                            <span class="slot-caption">
-                                Esq.
-                            </span>
-
-                            <input type="text"
-                                   class="inv-input"
-                                   data-inv="maoEsq"
-                                   placeholder="mão esquerda">
-
-                        </div>
-
-                        <div class="inventory-hand">
-
-                            <span class="slot-caption">
-                                Dir.
-                            </span>
-
-                            <input type="text"
-                                   class="inv-input"
-                                   data-inv="maoDir"
-                                   placeholder="mão direita">
-
-                        </div>
-
-                    </div>
-
-
-                    <!-- CORPO -->
-
-                    <label class="inv-label">
-                        Corpo
-                    </label>
-
-                    <div class="body-slot">
-
-                        <span class="slot-caption">
-                            Equipamento
-                        </span>
-
-                        <input type="text"
-                               class="inv-input inv-full"
-                               data-inv="corpo"
-                               placeholder="armadura, roupas...">
-
-                    </div>
-
-
-                    <!-- MOCHILA -->
-
                     <div class="backpack-header">
 
-                        <label class="inv-label">
-                            Mochila
-                        </label>
+                        <span class="weight-total">
+                            Peso carregado: <strong id="pesoTotal">0</strong>
+                        </span>
 
                         <button type="button"
                                 class="backpack-add"
                                 id="btnAdicionarSlot"
-                                title="Adicionar espaço na mochila"
-                                aria-label="Adicionar espaço na mochila">
+                                title="Adicionar item"
+                                aria-label="Adicionar item">
                             +
                         </button>
 

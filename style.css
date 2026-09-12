@@ -1665,3 +1665,160 @@ textarea {
         font-size: 1.55rem;
     }
 }
+
+
+/* Ajustes do inventário simplificado */
+.weight-total {
+    color: var(--gold);
+    font-family: 'Cinzel', serif;
+    font-size: clamp(0.5rem, 0.7vw, 0.62rem);
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+
+.weight-total strong {
+    color: var(--ink-bright);
+    font-size: 0.9rem;
+}
+
+.mochila-weight {
+    align-self: flex-start;
+    min-width: 78px;
+    padding: 3px 7px;
+    border: 1px solid var(--gold-dark);
+    border-radius: 1px;
+    outline: none;
+    background: #15130f;
+    color: var(--ink-bright);
+    font-family: 'Special Elite', monospace;
+    font-size: 0.54rem;
+    cursor: pointer;
+}
+
+.mochila-weight:focus {
+    border-color: var(--gold);
+    box-shadow: 0 0 0 1px rgba(185, 170, 130, 0.3);
+}
+
+/* Os nomes permanecem legíveis, mesmo com os dois grupos de aptidões. */
+.apt-name {
+    overflow: visible;
+    text-overflow: clip;
+    white-space: normal;
+    line-height: 1.05;
+}
+
+/* A moldura continua em losango; apenas a cruz fica reta. */
+.emblem-cross-v,
+.emblem-cross-h {
+    transform: rotate(-45deg);
+}
+
+/* Garante que página inicial e ficha nunca sejam mostradas simultaneamente. */
+.home-screen[hidden],
+.sheet[hidden] {
+    display: none !important;
+}
+
+
+/* Olhos decorativos do fundo */
+.watching-eyes {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    overflow: hidden;
+}
+
+body > :not(.watching-eyes) {
+    position: relative;
+    z-index: 1;
+}
+
+.watching-eye {
+    position: absolute;
+    width: clamp(48px, 7vw, 98px);
+    aspect-ratio: 1.75;
+    border: 1px solid rgba(185, 170, 130, 0.22);
+    border-radius: 50%;
+    background: radial-gradient(ellipse at center, rgba(113, 27, 27, 0.13), transparent 63%);
+    box-shadow: 0 0 24px rgba(113, 27, 27, 0.11), inset 0 0 16px rgba(0, 0, 0, 0.65);
+    display: none;
+    opacity: 0.42;
+    filter: blur(0.15px);
+    animation: eye-breathe 7s ease-in-out infinite;
+}
+
+.eye-pupil {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 29%;
+    aspect-ratio: 1;
+    border: 1px solid rgba(231, 225, 210, 0.38);
+    border-radius: 50%;
+    background: radial-gradient(circle at 38% 32%, #e7e1d2 0 7%, #711b1b 9% 29%, #050504 32% 66%, #711b1b 69% 100%);
+    box-shadow: 0 0 9px rgba(113, 27, 27, 0.65);
+    transform: translate(calc(-50% + var(--eye-x, 0px)), calc(-50% + var(--eye-y, 0px)));
+    transition: transform 110ms ease-out;
+}
+
+.eye-a { top: 15%; left: 4%; }
+.eye-b { top: 9%; right: 7%; width: clamp(36px, 5vw, 70px); opacity: 0.3; animation-delay: -2s; }
+.eye-c { bottom: 14%; left: 9%; width: clamp(38px, 5.5vw, 76px); opacity: 0.28; animation-delay: -4s; }
+.eye-d { right: 4%; bottom: 9%; opacity: 0.35; animation-delay: -5s; }
+
+/* Os olhos surgem conforme a Aflição aumenta. */
+body[data-aflicao="1"] .eye-a,
+body[data-aflicao="2"] .eye-a,
+body[data-aflicao="2"] .eye-b,
+body[data-aflicao="3"] .watching-eye {
+    display: block;
+}
+
+body[data-aflicao="3"] .watching-eye {
+    border-color: rgba(150, 37, 37, 0.48);
+    box-shadow: 0 0 27px rgba(113, 27, 27, 0.33), inset 0 0 16px rgba(0, 0, 0, 0.65);
+}
+
+body.aflicao-maxima::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: 5;
+    pointer-events: none;
+    opacity: 0;
+    mix-blend-mode: screen;
+    background: repeating-linear-gradient(0deg, transparent 0 7px, rgba(150, 37, 37, 0.15) 8px 9px);
+    animation: aflicao-glitch 3.8s steps(2, end) infinite;
+}
+
+body.aflicao-maxima .sheet,
+body.aflicao-maxima .home-frame {
+    animation: aflicao-tremor 4.5s steps(2, end) infinite;
+}
+
+@keyframes eye-breathe {
+    0%, 100% { opacity: 0.24; }
+    50% { opacity: 0.48; }
+}
+
+@keyframes aflicao-glitch {
+    0%, 88%, 100% { opacity: 0; transform: translate(0); }
+    89% { opacity: 0.42; transform: translate(-3px, 1px); }
+    91% { opacity: 0.16; transform: translate(3px, -1px); }
+    93% { opacity: 0.32; transform: translate(-1px, 0); }
+}
+
+@keyframes aflicao-tremor {
+    0%, 87%, 100% { transform: translate(0); }
+    88% { transform: translate(-1px, 0); }
+    90% { transform: translate(2px, 1px); }
+    92% { transform: translate(-1px, -1px); }
+}
+
+@media (max-width: 680px), (pointer: coarse) {
+    .watching-eye { opacity: 0.16; }
+    .eye-b, .eye-c { display: none; }
+}

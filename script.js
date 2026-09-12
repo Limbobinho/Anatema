@@ -57,6 +57,7 @@ const aptidoesGrid = document.getElementById("aptidoesGrid");
 
 const mochilaGrid = document.getElementById("mochilaGrid");
 const btnAdicionarSlot = document.getElementById("btnAdicionarSlot");
+const pesoTotal = document.getElementById("pesoTotal");
 
 const inventarioInputs = document.querySelectorAll("[data-inv]");
 
@@ -98,15 +99,18 @@ function criarMochilaInicial() {
     return [
         {
             nome: "",
-            descricao: ""
+            descricao: "",
+            peso: 0
         },
         {
             nome: "",
-            descricao: ""
+            descricao: "",
+            peso: 0
         },
         {
             nome: "",
-            descricao: ""
+            descricao: "",
+            peso: 0
         }
     ];
 }
@@ -269,6 +273,21 @@ function normalizarPip(valor) {
 }
 
 
+function normalizarPeso(valor) {
+
+    const numero = Number(valor);
+
+    if (!Number.isFinite(numero)) {
+        return 0;
+    }
+
+    return Math.max(
+        0,
+        Math.min(3, Math.round(numero))
+    );
+}
+
+
 /* =========================================================
    NORMALIZAÇÃO DA MOCHILA
    ========================================================= */
@@ -314,7 +333,9 @@ function normalizarMochila(mochila) {
                 descricao:
                     typeof item.descricao === "string"
                         ? item.descricao
-                        : ""
+                        : "",
+
+                peso: normalizarPeso(item.peso)
             };
 
         }
@@ -326,7 +347,9 @@ function normalizarMochila(mochila) {
                     ? item
                     : "",
 
-            descricao: ""
+            descricao: "",
+
+            peso: 0
         };
 
     });
@@ -341,7 +364,8 @@ function normalizarMochila(mochila) {
 
         resultado.push({
             nome: "",
-            descricao: ""
+            descricao: "",
+            peso: 0
         });
 
     }
@@ -809,6 +833,23 @@ function renderizarAptidoes(dados) {
         dados.aptidoes["Aflição"] || 0,
         true
     );
+
+    atualizarAtmosferaAfligida(dados);
+}
+
+
+function atualizarAtmosferaAfligida(dados) {
+
+    const nivel = normalizarPip(
+        dados.aptidoes["Aflição"] || 0
+    );
+
+    document.body.dataset.aflicao = String(nivel);
+
+    document.body.classList.toggle(
+        "aflicao-maxima",
+        nivel === PIPS_POR_APTIDAO
+    );
 }
 
 
@@ -1014,6 +1055,33 @@ function renderizarMochila(dados) {
                 item.descricao || "";
 
 
+            const peso =
+                document.createElement("select");
+
+            peso.className =
+                "mochila-weight";
+
+            peso.setAttribute(
+                "aria-label",
+                `Peso de ${item.nome || "item"}`
+            );
+
+            for (const valor of [0, 1, 2, 3]) {
+
+                const opcao =
+                    document.createElement("option");
+
+                opcao.value = String(valor);
+                opcao.textContent = `Peso ${valor}`;
+
+                peso.appendChild(opcao);
+            }
+
+            peso.value = String(
+                normalizarPeso(item.peso)
+            );
+
+
             const remover =
                 document.createElement("button");
 
@@ -1060,6 +1128,21 @@ function renderizarMochila(dados) {
             );
 
 
+            peso.addEventListener(
+                "change",
+                () => {
+
+                    dados.mochila[indice].peso =
+                        normalizarPeso(peso.value);
+
+                    atualizarPesoTotal(dados);
+
+                    salvarFichas();
+
+                }
+            );
+
+
             remover.addEventListener(
                 "click",
                 () => {
@@ -1080,10 +1163,29 @@ function renderizarMochila(dados) {
 
             slot.appendChild(descricao);
 
+            slot.appendChild(peso);
+
             mochilaGrid.appendChild(slot);
 
         }
     );
+
+    atualizarPesoTotal(dados);
+}
+
+
+function atualizarPesoTotal(dados) {
+
+    if (!pesoTotal) {
+        return;
+    }
+
+    const total = dados.mochila.reduce(
+        (soma, item) => soma + normalizarPeso(item.peso),
+        0
+    );
+
+    pesoTotal.textContent = String(total);
 }
 
 
@@ -1109,7 +1211,8 @@ function adicionarSlotMochila() {
 
     ficha.dados.mochila.push({
         nome: "",
-        descricao: ""
+        descricao: "",
+        peso: 0
     });
 
 
@@ -1121,7 +1224,7 @@ function adicionarSlotMochila() {
 
 
     mostrarStatus(
-        "Espaço adicionado à mochila."
+        "Item adicionado."
     );
 }
 
@@ -1149,28 +1252,7 @@ function removerSlotMochila(indice) {
     }
 
 
-    /*
-     * Mantemos pelo menos 1 espaço.
-     * A mochila pode crescer indefinidamente,
-     * mas uma mochila completamente inexistente
-     * fica um pouco inútil, mesmo para padrões medievais.
-     */
-
-    if (mochila.length <= 1) {
-
-        mochila[0] = {
-            nome: "",
-            descricao: ""
-        };
-
-    } else {
-
-        mochila.splice(
-            indice,
-            1
-        );
-
-    }
+    mochila.splice(indice, 1);
 
 
     salvarFichas();
@@ -1180,7 +1262,7 @@ function removerSlotMochila(indice) {
     );
 
     mostrarStatus(
-        "Espaço removido."
+        "Item removido."
     );
 }
 
@@ -1954,4 +2036,30 @@ function iniciar() {
 }
 
 
+function iniciarOlhosDoFundo() {
+
+    if (!window.matchMedia("(pointer: fine)").matches) {
+        return;
+    }
+
+    const olhos = document.querySelectorAll(".watching-eye");
+
+    document.addEventListener("pointermove", (evento) => {
+
+        for (const olho of olhos) {
+
+            const caixa = olho.getBoundingClientRect();
+            const centroX = caixa.left + caixa.width / 2;
+            const centroY = caixa.top + caixa.height / 2;
+            const angulo = Math.atan2(evento.clientY - centroY, evento.clientX - centroX);
+            const distancia = Math.min(7, Math.hypot(evento.clientX - centroX, evento.clientY - centroY) / 55);
+
+            olho.style.setProperty("--eye-x", `${Math.cos(angulo) * distancia}px`);
+            olho.style.setProperty("--eye-y", `${Math.sin(angulo) * distancia}px`);
+        }
+    });
+}
+
+
 iniciar();
+iniciarOlhosDoFundo();
