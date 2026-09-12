@@ -1,12 +1,8 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-
 <head>
-
     <meta charset="UTF-8">
-
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <title>ANATEMA — Ficha de Personagem</title>
 
@@ -16,287 +12,230 @@
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Caveat:wght@500;600;700&family=Special+Elite&display=swap"
           rel="stylesheet">
 
-    <link rel="stylesheet"
-          href="style.css">
-
+    <link rel="stylesheet" href="style.css">
 </head>
-
 
 <body>
 
-    <div class="app">
+    <!-- =========================================================
+         BARRA SUPERIOR
+         ========================================================= -->
+
+    <header class="toolbar">
+
+        <button id="btnExportar" type="button">
+            Exportar
+        </button>
+
+        <label class="btnImportar">
+            Importar
+            <input type="file"
+                   id="inputImportar"
+                   accept="application/json"
+                   hidden>
+        </label>
+
+        <span class="status" id="status"></span>
+
+    </header>
 
 
-        <!-- =====================================================
-             NAVEGADOR DE FICHAS
-             ===================================================== -->
+    <!-- =========================================================
+         NAVEGADOR DE FICHAS
+         ========================================================= -->
 
-        <aside class="sheet-browser"
-               id="sheetBrowser">
+    <nav class="sheet-tabs-wrap"
+         id="sheetTabsWrap"
+         aria-label="Fichas abertas">
 
-            <button class="new-sheet-button"
-                    id="btnNovo"
-                    type="button">
+        <div class="sheet-tabs"
+             id="sheetTabs"></div>
 
-                <span class="new-sheet-symbol">
-                    +
-                </span>
+        <button class="tab-add"
+                id="btnNovaFicha"
+                type="button"
+                title="Criar nova ficha"
+                aria-label="Criar nova ficha">
+            +
+        </button>
 
-                <span>
-                    Nova ficha
-                </span>
-
-            </button>
-
-
-            <div class="sheet-tabs"
-                 id="sheetTabs"
-                 aria-label="Fichas abertas"></div>
+    </nav>
 
 
-            <div class="browser-actions">
+    <!-- =========================================================
+         PÁGINA INICIAL
+         ========================================================= -->
 
-                <button class="browser-action"
-                        id="btnExportar"
-                        type="button">
-                    Exportar
+    <main class="home-screen"
+          id="homeScreen">
+
+        <div class="home-frame">
+
+            <div class="home-ornament top">
+                ── ◆ ──
+            </div>
+
+            <div class="home-emblem">
+
+                <div class="home-emblem-shape">
+
+                    <div class="home-emblem-circle"></div>
+
+                    <div class="home-emblem-cross-v"></div>
+                    <div class="home-emblem-cross-h"></div>
+
+                </div>
+
+            </div>
+
+            <div class="home-title">
+                ANATEMA
+            </div>
+
+            <div class="home-subtitle">
+                FICHAS DE PERSONAGEM
+            </div>
+
+            <div class="home-divider">
+                †
+            </div>
+
+            <div class="home-actions">
+
+                <button id="btnHomeNovaFicha"
+                        type="button"
+                        class="home-button">
+                    Criar nova ficha
                 </button>
 
-
-                <label class="browser-action import-action">
-
-                    Importar
+                <label class="home-button home-import-button">
+                    Importar ficha
 
                     <input type="file"
-                           id="inputImportar"
+                           id="inputImportarHome"
                            accept="application/json"
                            hidden>
+                </label>
+
+            </div>
+
+            <div class="home-ornament bottom">
+                ✦
+            </div>
+
+        </div>
+
+    </main>
+
+
+    <!-- =========================================================
+         FICHA
+         ========================================================= -->
+
+    <main class="sheet"
+          id="characterSheet"
+          hidden>
+
+        <div class="corner corner-tl"></div>
+        <div class="corner corner-tr"></div>
+        <div class="corner corner-bl"></div>
+        <div class="corner corner-br"></div>
+
+
+        <!-- =======================================================
+             COLUNA ESQUERDA
+             ======================================================= -->
+
+        <section class="col col-left">
+
+            <!-- NOME -->
+
+            <div class="field-row">
+
+                <label class="field field-name">
+
+                    <span class="tag">
+                        Nome
+                    </span>
+
+                    <span class="field-symbol">
+                        ✦
+                    </span>
+
+                    <input type="text"
+                           id="nome"
+                           placeholder="nome do personagem"
+                           autocomplete="off">
 
                 </label>
 
             </div>
 
 
-            <span class="status"
-                  id="status"></span>
+            <!-- JOGADOR -->
 
-        </aside>
+            <div class="field-row">
 
+                <label class="field field-name">
 
+                    <span class="tag">
+                        Jogador
+                    </span>
 
-        <!-- =====================================================
-             PÁGINA INICIAL
-             ===================================================== -->
+                    <span class="field-symbol">
+                        ✦
+                    </span>
 
-        <main class="home"
-              id="home">
+                    <input type="text"
+                           id="jogador"
+                           placeholder="nome do jogador"
+                           autocomplete="off">
 
-            <div class="home-frame">
-
-                <div class="home-corner home-corner-tl"></div>
-                <div class="home-corner home-corner-tr"></div>
-                <div class="home-corner home-corner-bl"></div>
-                <div class="home-corner home-corner-br"></div>
-
-
-                <div class="home-content">
-
-                    <div class="home-ornament">
-                        ── ◆ ──
-                    </div>
-
-
-                    <div class="home-emblem">
-
-                        <div class="home-emblem-inner">
-
-                            <div class="home-emblem-circle"></div>
-
-                            <div class="home-emblem-cross-v"></div>
-                            <div class="home-emblem-cross-h"></div>
-
-                        </div>
-
-                    </div>
-
-
-                    <h1>
-                        ANATEMA
-                    </h1>
-
-
-                    <div class="home-subtitle">
-                        FICHAS DE PERSONAGEM
-                    </div>
-
-
-                    <div class="home-divider">
-                        <span>†</span>
-                    </div>
-
-
-                    <div class="home-buttons">
-
-                        <button class="home-button primary"
-                                id="btnHomeNova"
-                                type="button">
-
-                            <span class="home-button-symbol">
-                                ✦
-                            </span>
-
-                            Nova ficha
-
-                        </button>
-
-
-                        <label class="home-button"
-                               for="inputImportar">
-
-                            <span class="home-button-symbol">
-                                ◆
-                            </span>
-
-                            Importar ficha
-
-                        </label>
-
-                    </div>
-
-
-                    <div class="home-footer">
-                        nenhum personagem registrado
-                    </div>
-
-                </div>
+                </label>
 
             </div>
 
-        </main>
 
+            <!-- VIDA / DEFESA -->
 
+            <div class="stat-row">
 
-        <!-- =====================================================
-             FICHA
-             ===================================================== -->
+                <div class="stat-box">
 
-        <main class="sheet"
-              id="sheet">
+                    <span class="stat-label">
+                        Vida
+                    </span>
 
-            <div class="corner corner-tl"></div>
-            <div class="corner corner-tr"></div>
-            <div class="corner corner-bl"></div>
-            <div class="corner corner-br"></div>
+                    <div class="ornament-line"></div>
 
+                    <div class="stat-values">
 
-            <!-- COLUNA ESQUERDA -->
+                        <div class="stat-value-group">
 
-            <section class="col col-left">
-
-                <div class="field-row">
-
-                    <label class="field field-name">
-
-                        <span class="tag">
-                            Nome
-                        </span>
-
-                        <span class="field-symbol">
-                            ✦
-                        </span>
-
-                        <input type="text"
-                               id="nome"
-                               placeholder="nome do personagem">
-
-                    </label>
-
-                </div>
-
-
-                <div class="field-row">
-
-                    <label class="field field-name">
-
-                        <span class="tag">
-                            Jogador
-                        </span>
-
-                        <span class="field-symbol">
-                            ✦
-                        </span>
-
-                        <input type="text"
-                               id="jogador"
-                               placeholder="nome do jogador">
-
-                    </label>
-
-                </div>
-
-
-                <!-- VIDA / DEFESA -->
-
-                <div class="stat-row">
-
-                    <div class="stat-box">
-
-                        <span class="stat-label">
-                            Vida
-                        </span>
-
-                        <div class="ornament-line"></div>
-
-                        <div class="stat-values">
-
-                            <div class="stat-value-group">
-
-                                <span class="stat-minmax">
-                                    Min
-                                </span>
-
-                                <input type="number"
-                                       id="vidaAtual"
-                                       class="stat-input"
-                                       min="0">
-
-                            </div>
-
-                            <span class="stat-sep">
-                                /
+                            <span class="stat-minmax">
+                                Min
                             </span>
 
-                            <div class="stat-value-group">
-
-                                <span class="stat-minmax">
-                                    Máx
-                                </span>
-
-                                <input type="number"
-                                       id="vidaMax"
-                                       class="stat-input"
-                                       min="0">
-
-                            </div>
+                            <input type="number"
+                                   id="vidaAtual"
+                                   class="stat-input"
+                                   min="0">
 
                         </div>
 
-                    </div>
-
-
-                    <div class="stat-box">
-
-                        <span class="stat-label">
-                            Defesa
+                        <span class="stat-sep">
+                            /
                         </span>
 
-                        <div class="ornament-line"></div>
+                        <div class="stat-value-group">
 
-                        <div class="stat-values">
+                            <span class="stat-minmax">
+                                Máx
+                            </span>
 
                             <input type="number"
-                                   id="defesa"
-                                   class="stat-input stat-input-single"
+                                   id="vidaMax"
+                                   class="stat-input"
                                    min="0">
 
                         </div>
@@ -306,228 +245,238 @@
                 </div>
 
 
-                <!-- AFLIÇÃO -->
+                <div class="stat-box">
 
-                <div class="aflicao-box">
-
-                    <span class="aflicao-title">
-                        Aflição
+                    <span class="stat-label">
+                        Defesa
                     </span>
 
-                    <div class="aflicao-decoration">
-                        ◆
+                    <div class="ornament-line"></div>
+
+                    <div class="stat-values">
+
+                        <input type="number"
+                               id="defesa"
+                               class="stat-input stat-input-single"
+                               min="0">
+
                     </div>
 
-                    <div class="aflicao-pips"
-                         id="aflicaoGrid"></div>
-
                 </div>
 
-
-                <!-- APTIDÕES -->
-
-                <div class="section">
-
-                    <h2 class="section-title">
-
-                        <span>✦</span>
-
-                        Aptidões
-
-                        <span>✦</span>
-
-                    </h2>
+            </div>
 
 
-                    <div class="aptidoes-grid"
-                         id="aptidoesGrid"></div>
+            <!-- AFLIÇÃO -->
 
+            <div class="aflicao-box">
+
+                <span class="aflicao-title">
+                    Aflição
+                </span>
+
+                <div class="aflicao-decoration">
+                    ◆
                 </div>
 
+                <div class="aflicao-pips"
+                     id="aflicaoGrid"></div>
 
-                <!-- INVENTÁRIO -->
-
-                <div class="section">
-
-                    <h2 class="section-title">
-
-                        <span>✦</span>
-
-                        Inventário
-
-                        <span>✦</span>
-
-                    </h2>
+            </div>
 
 
-                    <div class="inventario">
+            <!-- APTIDÕES -->
 
-                        <label class="inv-label">
-                            Mãos
-                        </label>
+            <div class="section">
 
+                <h2 class="section-title">
+                    <span>✦</span>
+                    Aptidões
+                    <span>✦</span>
+                </h2>
 
-                        <div class="inv-row">
+                <div class="aptidoes-grid"
+                     id="aptidoesGrid"></div>
 
-                            <div class="inventory-hand">
-
-                                <span class="slot-caption">
-                                    Esq.
-                                </span>
-
-                                <input type="text"
-                                       class="inv-input"
-                                       data-inv="maoEsq"
-                                       placeholder="mão esquerda">
-
-                            </div>
+            </div>
 
 
-                            <div class="inventory-hand">
+            <!-- INVENTÁRIO -->
 
-                                <span class="slot-caption">
-                                    Dir.
-                                </span>
+            <div class="section">
 
-                                <input type="text"
-                                       class="inv-input"
-                                       data-inv="maoDir"
-                                       placeholder="mão direita">
+                <h2 class="section-title">
+                    <span>✦</span>
+                    Inventário
+                    <span>✦</span>
+                </h2>
 
-                            </div>
+                <div class="inventario">
 
-                        </div>
+                    <!-- MÃOS -->
 
+                    <label class="inv-label">
+                        Mãos
+                    </label>
 
-                        <label class="inv-label">
-                            Corpo
-                        </label>
+                    <div class="inv-row">
 
-
-                        <div class="body-slot">
+                        <div class="inventory-hand">
 
                             <span class="slot-caption">
-                                Equipamento
+                                Esq.
                             </span>
 
                             <input type="text"
-                                   class="inv-input inv-full"
-                                   data-inv="corpo"
-                                   placeholder="armadura, roupas...">
+                                   class="inv-input"
+                                   data-inv="maoEsq"
+                                   placeholder="mão esquerda">
 
                         </div>
 
+                        <div class="inventory-hand">
+
+                            <span class="slot-caption">
+                                Dir.
+                            </span>
+
+                            <input type="text"
+                                   class="inv-input"
+                                   data-inv="maoDir"
+                                   placeholder="mão direita">
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- CORPO -->
+
+                    <label class="inv-label">
+                        Corpo
+                    </label>
+
+                    <div class="body-slot">
+
+                        <span class="slot-caption">
+                            Equipamento
+                        </span>
+
+                        <input type="text"
+                               class="inv-input inv-full"
+                               data-inv="corpo"
+                               placeholder="armadura, roupas...">
+
+                    </div>
+
+
+                    <!-- MOCHILA -->
+
+                    <div class="backpack-header">
 
                         <label class="inv-label">
                             Mochila
                         </label>
 
+                        <button type="button"
+                                class="backpack-add"
+                                id="btnAdicionarSlot"
+                                title="Adicionar espaço na mochila"
+                                aria-label="Adicionar espaço na mochila">
+                            +
+                        </button>
 
-                        <div class="mochila-grid"
-                             id="mochilaGrid"></div>
+                    </div>
 
+                    <div class="mochila-list"
+                         id="mochilaGrid"></div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- =======================================================
+             COLUNA DIREITA
+             ======================================================= -->
+
+        <section class="col col-right">
+
+            <div class="right-panel">
+
+
+                <!-- VANTAGENS -->
+
+                <div class="section">
+
+                    <h2 class="section-title">
+                        <span>✦</span>
+                        Vantagens
+                        <span>✦</span>
+                    </h2>
+
+                    <textarea class="panel-textarea"
+                              id="vantagens"
+                              placeholder="talentos, poderes, rituais..."></textarea>
+
+                </div>
+
+
+                <!-- EMBLEMA -->
+
+                <div class="emblem"
+                     aria-hidden="true">
+
+                    <div class="emblem-top">
+                        ── ◆ ──
+                    </div>
+
+                    <div class="emblem-symbol">
+
+                        <div class="emblem-circle"></div>
+
+                        <div class="emblem-cross-v"></div>
+                        <div class="emblem-cross-h"></div>
+
+                    </div>
+
+                    <div class="emblem-title">
+                        ANATEMA
+                    </div>
+
+                    <div class="emblem-bottom">
+                        ✦
                     </div>
 
                 </div>
 
-            </section>
 
+                <!-- ANOTAÇÕES -->
 
+                <div class="section notes-section">
 
-            <!-- COLUNA DIREITA -->
+                    <h2 class="section-title">
+                        <span>✦</span>
+                        Anotações
+                        <span>✦</span>
+                    </h2>
 
-            <section class="col col-right">
-
-                <div class="right-panel">
-
-
-                    <!-- VANTAGENS -->
-
-                    <div class="section">
-
-                        <h2 class="section-title">
-
-                            <span>✦</span>
-
-                            Vantagens
-
-                            <span>✦</span>
-
-                        </h2>
-
-
-                        <textarea class="panel-textarea"
-                                  id="vantagens"
-                                  placeholder="talentos, poderes, rituais..."></textarea>
-
-                    </div>
-
-
-                    <!-- EMBLEMA -->
-
-                    <div class="emblem"
-                         aria-hidden="true">
-
-                        <div class="emblem-top">
-                            ── ◆ ──
-                        </div>
-
-
-                        <div class="emblem-symbol">
-
-                            <div class="emblem-circle"></div>
-
-                            <div class="emblem-cross-v"></div>
-
-                            <div class="emblem-cross-h"></div>
-
-                        </div>
-
-
-                        <div class="emblem-title">
-                            ANATEMA
-                        </div>
-
-
-                        <div class="emblem-bottom">
-                            ✦
-                        </div>
-
-                    </div>
-
-
-                    <!-- ANOTAÇÕES -->
-
-                    <div class="section notes-section">
-
-                        <h2 class="section-title">
-
-                            <span>✦</span>
-
-                            Anotações
-
-                            <span>✦</span>
-
-                        </h2>
-
-
-                        <textarea class="panel-textarea notes"
-                                  id="anotacoes"
-                                  placeholder="anotações livres..."></textarea>
-
-                    </div>
+                    <textarea class="panel-textarea notes"
+                              id="anotacoes"
+                              placeholder="anotações livres..."></textarea>
 
                 </div>
 
-            </section>
+            </div>
 
-        </main>
+        </section>
 
-    </div>
+    </main>
 
 
     <script src="script.js"></script>
 
 </body>
-
 </html>

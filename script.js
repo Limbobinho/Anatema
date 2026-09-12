@@ -1,3 +1,9 @@
+/* =========================================================
+   ANATEMA — SISTEMA DE FICHAS
+   ========================================================= */
+
+const STORAGE_KEY = "anatema-fichas-v3";
+
 const APTIDOES = [
     "Agilidade",
     "Luta",
@@ -16,40 +22,43 @@ const APTIDOES = [
 ];
 
 const PIPS_POR_APTIDAO = 3;
-const SLOTS_MOCHILA = 12;
-
-const STORAGE_KEY = "anatema-fichas-v3";
-const OLD_STORAGE_KEY_V2 = "anatema-fichas-v2";
-const OLD_STORAGE_KEY_V1 = "anatema-ficha-v1";
 
 
 /* =========================================================
    ELEMENTOS
    ========================================================= */
 
-const grid =
-    document.getElementById("aptidoesGrid");
+const homeScreen = document.getElementById("homeScreen");
+const characterSheet = document.getElementById("characterSheet");
 
-const aflicaoGrid =
-    document.getElementById("aflicaoGrid");
+const sheetTabs = document.getElementById("sheetTabs");
+const btnNovaFicha = document.getElementById("btnNovaFicha");
+const btnHomeNovaFicha = document.getElementById("btnHomeNovaFicha");
 
-const mochilaGrid =
-    document.getElementById("mochilaGrid");
+const btnExportar = document.getElementById("btnExportar");
 
-const sheetTabs =
-    document.getElementById("sheetTabs");
+const inputImportar = document.getElementById("inputImportar");
+const inputImportarHome = document.getElementById("inputImportarHome");
 
-const sheetBrowser =
-    document.getElementById("sheetBrowser");
+const statusElement = document.getElementById("status");
 
-const sheet =
-    document.getElementById("sheet");
+const nomeInput = document.getElementById("nome");
+const jogadorInput = document.getElementById("jogador");
 
-const home =
-    document.getElementById("home");
+const vidaAtualInput = document.getElementById("vidaAtual");
+const vidaMaxInput = document.getElementById("vidaMax");
+const defesaInput = document.getElementById("defesa");
 
-const statusEl =
-    document.getElementById("status");
+const vantagensInput = document.getElementById("vantagens");
+const anotacoesInput = document.getElementById("anotacoes");
+
+const aflicaoGrid = document.getElementById("aflicaoGrid");
+const aptidoesGrid = document.getElementById("aptidoesGrid");
+
+const mochilaGrid = document.getElementById("mochilaGrid");
+const btnAdicionarSlot = document.getElementById("btnAdicionarSlot");
+
+const inventarioInputs = document.querySelectorAll("[data-inv]");
 
 
 /* =========================================================
@@ -57,616 +66,568 @@ const statusEl =
    ========================================================= */
 
 let fichas = [];
-
 let fichaAtualId = null;
 
-let state =
-    estadoVazio();
-
-let saveTimeout;
-
 
 /* =========================================================
-   CAMPOS
-   ========================================================= */
-
-const campos = {
-
-    nome:
-        document.getElementById("nome"),
-
-    jogador:
-        document.getElementById("jogador"),
-
-    vidaAtual:
-        document.getElementById("vidaAtual"),
-
-    vidaMax:
-        document.getElementById("vidaMax"),
-
-    defesa:
-        document.getElementById("defesa"),
-
-    vantagens:
-        document.getElementById("vantagens"),
-
-    anotacoes:
-        document.getElementById("anotacoes")
-
-};
-
-
-const invInputs =
-    document.querySelectorAll(
-        "[data-inv]"
-    );
-
-
-/* =========================================================
-   ESTADO VAZIO
-   ========================================================= */
-
-function estadoVazio() {
-
-    return {
-
-        nome: "",
-
-        jogador: "",
-
-        vidaAtual: "",
-
-        vidaMax: "",
-
-        defesa: "",
-
-        aptidoes: {},
-
-        inventario: {
-
-            maoEsq: "",
-            maoDir: "",
-            corpo: ""
-
-        },
-
-        mochila:
-            Array(
-                SLOTS_MOCHILA
-            ).fill(""),
-
-        vantagens: "",
-
-        anotacoes: ""
-
-    };
-
-}
-
-
-/* =========================================================
-   ID
+   UTILITÁRIOS
    ========================================================= */
 
 function criarId() {
-
     return (
         Date.now().toString(36) +
-        Math.random()
-            .toString(36)
-            .substring(2, 9)
+        Math.random().toString(36).substring(2, 9)
     );
-
 }
 
 
-/* =========================================================
-   CRIAR FICHA
-   ========================================================= */
+function criarAptidoesVazias() {
+    const aptidoes = {};
 
-function criarFicha(
-    titulo = "Nova ficha"
-) {
+    for (const aptidao of APTIDOES) {
+        aptidoes[aptidao] = 0;
+    }
 
+    aptidoes["Aflição"] = 0;
+
+    return aptidoes;
+}
+
+
+function criarMochilaInicial() {
+    return [
+        {
+            nome: "",
+            descricao: ""
+        },
+        {
+            nome: "",
+            descricao: ""
+        },
+        {
+            nome: "",
+            descricao: ""
+        }
+    ];
+}
+
+
+function criarEstadoVazio() {
     return {
+        nome: "",
+        jogador: "",
 
-        id:
-            criarId(),
+        vidaAtual: "",
+        vidaMax: "",
+        defesa: "",
 
-        titulo:
-            titulo ||
-            "Nova ficha",
+        aptidoes: criarAptidoesVazias(),
 
-        dados:
-            estadoVazio()
+        inventario: {
+            maoEsq: "",
+            maoDir: "",
+            corpo: ""
+        },
 
+        mochila: criarMochilaInicial(),
+
+        vantagens: "",
+        anotacoes: ""
     };
-
 }
 
 
 /* =========================================================
-   APTIDÕES
+   NORMALIZAÇÃO DE ESTADO
    ========================================================= */
 
-APTIDOES.forEach(
-    (nome) => {
+function normalizarEstado(dados = {}) {
 
-        criarPips(
-            nome,
-            grid,
-            true
-        );
+    const estado = criarEstadoVazio();
 
-    }
-);
+    estado.nome =
+        typeof dados.nome === "string"
+            ? dados.nome
+            : "";
 
+    estado.jogador =
+        typeof dados.jogador === "string"
+            ? dados.jogador
+            : "";
 
-criarPips(
-    "Aflição",
-    aflicaoGrid,
-    false
-);
+    estado.vidaAtual =
+        dados.vidaAtual ?? "";
 
+    estado.vidaMax =
+        dados.vidaMax ?? "";
 
-function criarPips(
-    nome,
-    container,
-    mostrarNome = true
-) {
-
-    const row =
-        document.createElement(
-            "div"
-        );
-
-    row.className =
-        "apt-row";
+    estado.defesa =
+        dados.defesa ?? "";
 
 
-    if (mostrarNome) {
-
-        const label =
-            document.createElement(
-                "span"
-            );
-
-        label.className =
-            "apt-name";
-
-        label.textContent =
-            nome;
-
-        row.appendChild(
-            label
-        );
-
-    }
-
-
-    const pipsWrap =
-        document.createElement(
-            "div"
-        );
-
-    pipsWrap.className =
-        "apt-pips";
-
-    pipsWrap.dataset.apt =
-        nome;
-
-
-    for (
-        let i = 1;
-        i <= PIPS_POR_APTIDAO;
-        i++
+    if (
+        dados.aptidoes &&
+        typeof dados.aptidoes === "object"
     ) {
 
-        const pip =
-            document.createElement(
-                "button"
-            );
+        for (const aptidao of APTIDOOES_SEGURAS()) {
 
-        pip.type =
-            "button";
+            if (
+                Object.prototype.hasOwnProperty.call(
+                    dados.aptidoes,
+                    aptidao
+                )
+            ) {
 
-        pip.className =
-            "pip";
-
-        pip.dataset.value =
-            i;
-
-        pip.setAttribute(
-            "aria-label",
-            `${nome} nível ${i}`
-        );
-
-
-        pip.addEventListener(
-            "click",
-            () => {
-
-                onPipClick(
-                    nome,
-                    i
-                );
+                estado.aptidoes[aptidao] =
+                    normalizarPip(
+                        dados.aptidoes[aptidao]
+                    );
 
             }
-        );
 
-
-        pipsWrap.appendChild(
-            pip
-        );
+        }
 
     }
 
 
-    row.appendChild(
-        pipsWrap
-    );
+    /*
+     * Compatibilidade com versões antigas
+     * que eventualmente salvaram Aflição separadamente.
+     */
 
-    container.appendChild(
-        row
-    );
+    if (
+        estado.aptidoes["Aflição"] === 0 &&
+        typeof dados.aflicao === "number"
+    ) {
 
+        estado.aptidoes["Aflição"] =
+            normalizarPip(dados.aflicao);
+
+    }
+
+
+    if (
+        dados.inventario &&
+        typeof dados.inventario === "object"
+    ) {
+
+        estado.inventario.maoEsq =
+            dados.inventario.maoEsq ?? "";
+
+        estado.inventario.maoDir =
+            dados.inventario.maoDir ?? "";
+
+        estado.inventario.corpo =
+            dados.inventario.corpo ?? "";
+
+    }
+
+
+    estado.mochila =
+        normalizarMochila(dados.mochila);
+
+
+    estado.vantagens =
+        typeof dados.vantagens === "string"
+            ? dados.vantagens
+            : "";
+
+    estado.anotacoes =
+        typeof dados.anotacoes === "string"
+            ? dados.anotacoes
+            : "";
+
+
+    return estado;
 }
 
 
-function onPipClick(
-    aptidao,
-    valorClicado
-) {
-
-    const atual =
-        state.aptidoes[aptidao] || 0;
-
-
-    state.aptidoes[aptidao] =
-        atual === valorClicado
-            ? valorClicado - 1
-            : valorClicado;
-
-
-    renderPips();
-
-    save();
-
-}
-
-
-/* =========================================================
-   RENDERIZAR PIPS
-   ========================================================= */
-
-function renderPips() {
-
-    const todas = [
+function APTIDOOES_SEGURAS() {
+    return [
         ...APTIDOES,
         "Aflição"
     ];
-
-
-    todas.forEach(
-        (nome) => {
-
-            const container =
-                nome === "Aflição"
-                    ? aflicaoGrid
-                    : grid;
-
-
-            const wrap =
-                container.querySelector(
-                    `.apt-pips[data-apt="${CSS.escape(nome)}"]`
-                );
-
-
-            if (!wrap) {
-                return;
-            }
-
-
-            const valor =
-                state.aptidoes[nome] || 0;
-
-
-            wrap
-                .querySelectorAll(".pip")
-                .forEach(
-                    (pip) => {
-
-                        pip.classList.toggle(
-                            "filled",
-                            Number(
-                                pip.dataset.value
-                            ) <= valor
-                        );
-
-                    }
-                );
-
-        }
-    );
-
 }
 
 
-/* =========================================================
-   MOCHILA
-   ========================================================= */
+function normalizarPip(valor) {
 
-for (
-    let i = 0;
-    i < SLOTS_MOCHILA;
-    i++
-) {
+    const numero = Number(valor);
 
-    const slot =
-        document.createElement(
-            "div"
-        );
+    if (!Number.isFinite(numero)) {
+        return 0;
+    }
 
-    slot.className =
-        "mochila-slot";
-
-
-    const input =
-        document.createElement(
-            "input"
-        );
-
-    input.type =
-        "text";
-
-    input.dataset.mochilaSlot =
-        i;
-
-    input.placeholder =
-        `${i + 1}`;
-
-
-    slot.appendChild(
-        input
-    );
-
-    mochilaGrid.appendChild(
-        slot
-    );
-
-}
-
-
-const mochilaInputs =
-    document.querySelectorAll(
-        "[data-mochila-slot]"
-    );
-
-
-/* =========================================================
-   NORMALIZAR MOCHILA
-   ========================================================= */
-
-function normalizarMochila(
-    mochila
-) {
-
-    if (
-        Array.isArray(
-            mochila
+    return Math.max(
+        0,
+        Math.min(
+            PIPS_POR_APTIDAO,
+            Math.round(numero)
         )
-    ) {
+    );
+}
 
-        return [
-            ...mochila,
 
-            ...Array(
-                Math.max(
-                    0,
-                    SLOTS_MOCHILA -
-                    mochila.length
-                )
-            ).fill("")
+/* =========================================================
+   NORMALIZAÇÃO DA MOCHILA
+   ========================================================= */
 
-        ]
-            .slice(
-                0,
-                SLOTS_MOCHILA
-            );
+function normalizarMochila(mochila) {
+
+    /*
+     * Versão antiga:
+     *
+     * [
+     *   "espada",
+     *   "poção"
+     * ]
+     *
+     * Versão nova:
+     *
+     * [
+     *   {
+     *     nome: "espada",
+     *     descricao: "..."
+     *   }
+     * ]
+     */
+
+    if (!Array.isArray(mochila)) {
+        return criarMochilaInicial();
+    }
+
+
+    const resultado = mochila.map((item) => {
+
+        if (
+            item &&
+            typeof item === "object"
+        ) {
+
+            return {
+                nome:
+                    typeof item.nome === "string"
+                        ? item.nome
+                        : "",
+
+                descricao:
+                    typeof item.descricao === "string"
+                        ? item.descricao
+                        : ""
+            };
+
+        }
+
+
+        return {
+            nome:
+                typeof item === "string"
+                    ? item
+                    : "",
+
+            descricao: ""
+        };
+
+    });
+
+
+    /*
+     * Se uma versão antiga possuir menos de 3
+     * espaços, completamos para o mínimo atual.
+     */
+
+    while (resultado.length < 3) {
+
+        resultado.push({
+            nome: "",
+            descricao: ""
+        });
 
     }
 
 
-    if (
-        typeof mochila ===
-        "string"
-    ) {
-
-        const linhas =
-            mochila
-                .split("\n")
-                .filter(Boolean);
+    return resultado;
+}
 
 
-        return [
-            ...linhas,
+/* =========================================================
+   CRIAÇÃO DE FICHA
+   ========================================================= */
 
-            ...Array(
-                Math.max(
-                    0,
-                    SLOTS_MOCHILA -
-                    linhas.length
-                )
-            ).fill("")
+function criarFicha(dados = null) {
 
-        ]
-            .slice(
-                0,
-                SLOTS_MOCHILA
+    const ficha = {
+        id: criarId(),
+
+        titulo: "Nova ficha",
+
+        dados:
+            dados
+                ? normalizarEstado(dados)
+                : criarEstadoVazio()
+    };
+
+
+    atualizarTituloFicha(ficha);
+
+
+    fichas.push(ficha);
+
+    fichaAtualId = ficha.id;
+
+    salvarFichas();
+
+    renderizarAbas();
+
+    carregarFichaAtual();
+
+    mostrarFicha();
+
+    mostrarStatus("Nova ficha criada.");
+
+    return ficha;
+}
+
+
+/* =========================================================
+   TÍTULO DA ABA
+   ========================================================= */
+
+function atualizarTituloFicha(ficha) {
+
+    const nome =
+        ficha?.dados?.nome?.trim();
+
+    ficha.titulo =
+        nome || "Nova ficha";
+}
+
+
+/* =========================================================
+   FICHA ATUAL
+   ========================================================= */
+
+function obterFichaAtual() {
+
+    return fichas.find(
+        ficha => ficha.id === fichaAtualId
+    ) || null;
+}
+
+
+function trocarFicha(id) {
+
+    const ficha = fichas.find(
+        item => item.id === id
+    );
+
+    if (!ficha) {
+        return;
+    }
+
+    salvarEstadoDaInterface();
+
+    fichaAtualId = id;
+
+    carregarFichaAtual();
+
+    renderizarAbas();
+
+    mostrarFicha();
+
+    salvarFichas();
+}
+
+
+/* =========================================================
+   FECHAR / EXCLUIR FICHA
+   ========================================================= */
+
+function fecharFicha(id, evento) {
+
+    const indice =
+        fichas.findIndex(
+            ficha => ficha.id === id
+        );
+
+    if (indice === -1) {
+        return;
+    }
+
+
+    const ficha = fichas[indice];
+
+    const exclusaoForcada =
+        evento.shiftKey &&
+        evento.button === 0;
+
+
+    /*
+     * Shift + clique esquerdo:
+     * exclui imediatamente.
+     */
+
+    if (!exclusaoForcada) {
+
+        const nome =
+            ficha.dados.nome.trim() ||
+            "Nova ficha";
+
+        const confirmar =
+            window.confirm(
+                `Excluir a ficha "${nome}"?\n\n` +
+                `Esta ação não pode ser desfeita.`
             );
+
+        if (!confirmar) {
+            return;
+        }
 
     }
 
 
-    return Array(
-        SLOTS_MOCHILA
-    ).fill("");
+    const eraAtual =
+        ficha.id === fichaAtualId;
 
+
+    fichas.splice(indice, 1);
+
+
+    if (fichas.length === 0) {
+
+        fichaAtualId = null;
+
+        salvarFichas();
+
+        renderizarAbas();
+
+        mostrarHome();
+
+        mostrarStatus("Todas as fichas foram fechadas.");
+
+        return;
+    }
+
+
+    if (eraAtual) {
+
+        const novaFicha =
+            fichas[
+            Math.min(
+                indice,
+                fichas.length - 1
+            )
+            ];
+
+        fichaAtualId = novaFicha.id;
+
+        carregarFichaAtual();
+
+    }
+
+
+    salvarFichas();
+
+    renderizarAbas();
+
+    mostrarFicha();
+
+    mostrarStatus(
+        exclusaoForcada
+            ? "Ficha excluída."
+            : "Ficha fechada."
+    );
 }
 
 
 /* =========================================================
-   NORMALIZAR STATE
+   ABAS
    ========================================================= */
 
-function normalizarState(
-    dados
-) {
+function renderizarAbas() {
 
-    const vazio =
-        estadoVazio();
-
-    const entrada =
-        dados || {};
+    sheetTabs.innerHTML = "";
 
 
-    state = {
+    for (const ficha of fichas) {
 
-        ...vazio,
-
-        ...entrada
-
-    };
+        atualizarTituloFicha(ficha);
 
 
-    state.aptidoes = {
+        const tab =
+            document.createElement("div");
 
-        ...vazio.aptidoes,
+        tab.className =
+            "sheet-tab" +
+            (
+                ficha.id === fichaAtualId
+                    ? " active"
+                    : ""
+            );
 
-        ...(entrada.aptidoes || {})
-
-    };
-
-
-    state.inventario = {
-
-        ...vazio.inventario,
-
-        ...(entrada.inventario || {})
-
-    };
+        tab.dataset.id = ficha.id;
 
 
-    state.mochila =
-        normalizarMochila(
-            entrada.mochila
+        const titulo =
+            document.createElement("span");
+
+        titulo.className =
+            "sheet-tab-title";
+
+        titulo.textContent =
+            ficha.titulo;
+
+
+        const close =
+            document.createElement("button");
+
+        close.type = "button";
+
+        close.className =
+            "sheet-tab-close";
+
+        close.textContent = "×";
+
+        close.title =
+            "Fechar ficha. Shift + clique exclui sem confirmação.";
+
+        close.setAttribute(
+            "aria-label",
+            `Fechar ${ficha.titulo}`
         );
 
-}
 
+        close.addEventListener(
+            "click",
+            (evento) => {
 
-/* =========================================================
-   PREENCHER FORMULÁRIO
-   ========================================================= */
+                evento.stopPropagation();
 
-function preencherFormulario() {
+                fecharFicha(
+                    ficha.id,
+                    evento
+                );
 
-    campos.nome.value =
-        state.nome || "";
-
-    campos.jogador.value =
-        state.jogador || "";
-
-    campos.vidaAtual.value =
-        state.vidaAtual ?? "";
-
-    campos.vidaMax.value =
-        state.vidaMax ?? "";
-
-    campos.defesa.value =
-        state.defesa ?? "";
-
-    campos.vantagens.value =
-        state.vantagens || "";
-
-    campos.anotacoes.value =
-        state.anotacoes || "";
-
-
-    invInputs.forEach(
-        (el) => {
-
-            el.value =
-                state.inventario[
-                el.dataset.inv
-                ] || "";
-
-        }
-    );
-
-
-    mochilaInputs.forEach(
-        (el, index) => {
-
-            el.value =
-                state.mochila[index] || "";
-
-        }
-    );
-
-
-    renderPips();
-
-}
-
-
-/* =========================================================
-   LER FORMULÁRIO
-   ========================================================= */
-
-function lerFormularioParaState() {
-
-    state.nome =
-        campos.nome.value;
-
-    state.jogador =
-        campos.jogador.value;
-
-    state.vidaAtual =
-        campos.vidaAtual.value;
-
-    state.vidaMax =
-        campos.vidaMax.value;
-
-    state.defesa =
-        campos.defesa.value;
-
-    state.vantagens =
-        campos.vantagens.value;
-
-    state.anotacoes =
-        campos.anotacoes.value;
-
-
-    invInputs.forEach(
-        (el) => {
-
-            state.inventario[
-                el.dataset.inv
-            ] =
-                el.value;
-
-        }
-    );
-
-
-    state.mochila =
-        Array.from(
-            mochilaInputs,
-            (el) =>
-                el.value
+            }
         );
 
+
+        tab.appendChild(titulo);
+
+        tab.appendChild(close);
+
+
+        tab.addEventListener(
+            "click",
+            () => {
+                trocarFicha(ficha.id);
+            }
+        );
+
+
+        sheetTabs.appendChild(tab);
+    }
 }
 
 
@@ -676,362 +637,628 @@ function lerFormularioParaState() {
 
 function mostrarHome() {
 
-    home.style.display =
-        "flex";
+    homeScreen.hidden = false;
 
-    sheet.style.display =
-        "none";
+    characterSheet.hidden = true;
 
-    sheetBrowser.style.display =
-        "none";
-
+    document.body.classList.add(
+        "home-active"
+    );
 }
 
 
 function mostrarFicha() {
 
-    home.style.display =
-        "none";
+    if (!obterFichaAtual()) {
+        mostrarHome();
+        return;
+    }
 
-    sheet.style.display =
-        "grid";
+    homeScreen.hidden = true;
 
-    sheetBrowser.style.display =
-        "flex";
+    characterSheet.hidden = false;
 
+    document.body.classList.remove(
+        "home-active"
+    );
 }
 
 
 /* =========================================================
-   SALVAMENTO
+   CARREGAR FICHA NA INTERFACE
    ========================================================= */
 
-function save() {
-
-    lerFormularioParaState();
-
+function carregarFichaAtual() {
 
     const ficha =
-        fichas.find(
-            (item) =>
-                item.id ===
-                fichaAtualId
+        obterFichaAtual();
+
+    if (!ficha) {
+        mostrarHome();
+        return;
+    }
+
+
+    const dados =
+        normalizarEstado(
+            ficha.dados
         );
 
+    ficha.dados = dados;
+
+
+    nomeInput.value =
+        dados.nome;
+
+    jogadorInput.value =
+        dados.jogador;
+
+    vidaAtualInput.value =
+        dados.vidaAtual;
+
+    vidaMaxInput.value =
+        dados.vidaMax;
+
+    defesaInput.value =
+        dados.defesa;
+
+    vantagensInput.value =
+        dados.vantagens;
+
+    anotacoesInput.value =
+        dados.anotacoes;
+
+
+    for (const input of inventarioInputs) {
+
+        const chave =
+            input.dataset.inv;
+
+        input.value =
+            dados.inventario[chave] || "";
+
+    }
+
+
+    renderizarAptidoes(dados);
+
+    renderizarMochila(dados);
+}
+
+
+/* =========================================================
+   SALVAR INTERFACE NA FICHA
+   ========================================================= */
+
+function salvarEstadoDaInterface() {
+
+    const ficha =
+        obterFichaAtual();
 
     if (!ficha) {
         return;
     }
 
 
-    ficha.dados =
-        JSON.parse(
-            JSON.stringify(state)
-        );
+    const dados =
+        ficha.dados;
 
 
-    if (
-        state.nome.trim()
-    ) {
+    dados.nome =
+        nomeInput.value;
 
-        ficha.titulo =
-            state.nome.trim();
+    dados.jogador =
+        jogadorInput.value;
+
+    dados.vidaAtual =
+        vidaAtualInput.value;
+
+    dados.vidaMax =
+        vidaMaxInput.value;
+
+    dados.defesa =
+        defesaInput.value;
+
+    dados.vantagens =
+        vantagensInput.value;
+
+    dados.anotacoes =
+        anotacoesInput.value;
+
+
+    for (const input of inventarioInputs) {
+
+        const chave =
+            input.dataset.inv;
+
+        dados.inventario[chave] =
+            input.value;
 
     }
 
 
-    salvarSistema();
-
-    renderTabs();
-
-    mostrarStatus(
-        "salvo"
-    );
-
+    atualizarTituloFicha(ficha);
 }
 
 
-function saveDebounced() {
+/* =========================================================
+   RENDERIZAR APTIDÕES
+   ========================================================= */
 
-    clearTimeout(
-        saveTimeout
-    );
+function renderizarAptidoes(dados) {
+
+    aptidoesGrid.innerHTML = "";
+
+    aflicaoGrid.innerHTML = "";
 
 
-    saveTimeout =
-        setTimeout(
-            save,
-            300
+    for (const aptidao of APTIDOES) {
+
+        criarLinhaAptidao(
+            aptidoesGrid,
+            aptidao,
+            dados.aptidoes[aptidao] || 0
         );
 
-}
+    }
 
 
-/* =========================================================
-   LOCAL STORAGE
-   ========================================================= */
-
-function salvarSistema() {
-
-    localStorage.setItem(
-        STORAGE_KEY,
-        JSON.stringify({
-            fichas,
-            fichaAtualId
-        })
+    criarLinhaAptidao(
+        aflicaoGrid,
+        "Aflição",
+        dados.aptidoes["Aflição"] || 0,
+        true
     );
-
 }
 
 
-/* =========================================================
-   STATUS
-   ========================================================= */
-
-function mostrarStatus(
-    mensagem
+function criarLinhaAptidao(
+    container,
+    nome,
+    valor,
+    compacta = false
 ) {
 
-    statusEl.textContent =
-        mensagem;
+    const row =
+        document.createElement("div");
+
+    row.className = "apt-row";
 
 
-    clearTimeout(
-        mostrarStatus._timeout
-    );
+    if (!compacta) {
+
+        const label =
+            document.createElement("span");
+
+        label.className =
+            "apt-name";
+
+        label.textContent =
+            nome;
+
+        row.appendChild(label);
+
+    }
 
 
-    mostrarStatus._timeout =
-        setTimeout(
-            () => {
+    const pips =
+        document.createElement("div");
 
-                statusEl.textContent =
-                    "";
+    pips.className =
+        "apt-pips";
 
-            },
-            1200
+
+    for (
+        let i = 1;
+        i <= PIPS_POR_APTIDAO;
+        i++
+    ) {
+
+        const pip =
+            document.createElement("button");
+
+        pip.type = "button";
+
+        pip.className =
+            "pip" +
+            (
+                i <= valor
+                    ? " filled"
+                    : ""
+            );
+
+        pip.dataset.value = i;
+
+        pip.setAttribute(
+            "aria-label",
+            `${nome}: ${i} de ${PIPS_POR_APTIDAO}`
         );
 
-}
 
+        pip.addEventListener(
+            "click",
+            () => {
 
-/* =========================================================
-   ABAS
-   ========================================================= */
-
-function renderTabs() {
-
-    sheetTabs.innerHTML =
-        "";
-
-
-    fichas.forEach(
-        (ficha) => {
-
-            const tab =
-                document.createElement(
-                    "div"
-                );
-
-            tab.className =
-                "sheet-tab";
-
-
-            if (
-                ficha.id ===
-                fichaAtualId
-            ) {
-
-                tab.classList.add(
-                    "active"
+                alterarAptidao(
+                    nome,
+                    i
                 );
 
             }
+        );
 
 
-            const indicator =
-                document.createElement(
-                    "span"
-                );
-
-            indicator.className =
-                "sheet-tab-indicator";
+        pips.appendChild(pip);
+    }
 
 
-            const name =
-                document.createElement(
-                    "span"
-                );
+    row.appendChild(pips);
 
-            name.className =
-                "sheet-tab-name";
-
-
-            name.textContent =
-                ficha.id === fichaAtualId
-                    ? (
-                        state.nome.trim() ||
-                        ficha.titulo ||
-                        "Nova ficha"
-                    )
-                    : (
-                        ficha.dados?.nome?.trim() ||
-                        ficha.titulo ||
-                        "Nova ficha"
-                    );
-
-
-            const close =
-                document.createElement(
-                    "button"
-                );
-
-            close.type =
-                "button";
-
-            close.className =
-                "sheet-tab-close";
-
-            close.textContent =
-                "×";
-
-
-            close.setAttribute(
-                "aria-label",
-                `Fechar ${name.textContent}`
-            );
-
-
-            close.addEventListener(
-                "click",
-                (event) => {
-
-                    event.stopPropagation();
-
-                    fecharFicha(
-                        ficha.id
-                    );
-
-                }
-            );
-
-
-            tab.appendChild(
-                indicator
-            );
-
-            tab.appendChild(
-                name
-            );
-
-            tab.appendChild(
-                close
-            );
-
-
-            tab.addEventListener(
-                "click",
-                () => {
-
-                    trocarFicha(
-                        ficha.id
-                    );
-
-                }
-            );
-
-
-            sheetTabs.appendChild(
-                tab
-            );
-
-        }
-    );
-
+    container.appendChild(row);
 }
 
 
 /* =========================================================
-   TROCAR FICHA
+   ALTERAR APTIDÃO
    ========================================================= */
 
-function trocarFicha(
-    id
+function alterarAptidao(
+    nome,
+    valorClicado
 ) {
 
-    if (
-        id ===
-        fichaAtualId
-    ) {
+    const ficha =
+        obterFichaAtual();
 
+    if (!ficha) {
         return;
-
     }
 
 
     const atual =
-        fichas.find(
-            (ficha) =>
-                ficha.id ===
-                fichaAtualId
-        );
+        ficha.dados.aptidoes[nome] || 0;
 
 
-    if (atual) {
+    /*
+     * Se clicar no maior pip atualmente preenchido,
+     * reduz um ponto.
+     *
+     * Caso contrário, vai até o pip clicado.
+     */
 
-        lerFormularioParaState();
+    if (
+        atual === valorClicado
+    ) {
 
-        atual.dados =
-            JSON.parse(
-                JSON.stringify(state)
+        ficha.dados.aptidoes[nome] =
+            Math.max(
+                0,
+                atual - 1
             );
 
+    } else {
 
-        if (
-            state.nome.trim()
-        ) {
-
-            atual.titulo =
-                state.nome.trim();
-
-        }
+        ficha.dados.aptidoes[nome] =
+            valorClicado;
 
     }
 
 
-    const nova =
-        fichas.find(
-            (ficha) =>
-                ficha.id === id
+    salvarFichas();
+
+    renderizarAptidoes(
+        ficha.dados
+    );
+}
+
+
+/* =========================================================
+   MOCHILA
+   ========================================================= */
+
+function renderizarMochila(dados) {
+
+    dados.mochila =
+        normalizarMochila(
+            dados.mochila
         );
 
+    mochilaGrid.innerHTML = "";
 
-    if (!nova) {
+
+    dados.mochila.forEach(
+        (item, indice) => {
+
+            const slot =
+                document.createElement("div");
+
+            slot.className =
+                "mochila-slot";
+
+
+            const numero =
+                document.createElement("span");
+
+            numero.className =
+                "mochila-number";
+
+            numero.textContent =
+                String(indice + 1);
+
+
+            const nome =
+                document.createElement("input");
+
+            nome.type = "text";
+
+            nome.className =
+                "mochila-name";
+
+            nome.placeholder =
+                "nome do item";
+
+            nome.value =
+                item.nome || "";
+
+
+            const descricao =
+                document.createElement("textarea");
+
+            descricao.className =
+                "mochila-description";
+
+            descricao.placeholder =
+                "descrição, quantidade, propriedades...";
+
+            descricao.value =
+                item.descricao || "";
+
+
+            const remover =
+                document.createElement("button");
+
+            remover.type = "button";
+
+            remover.className =
+                "mochila-remove";
+
+            remover.textContent =
+                "×";
+
+            remover.title =
+                "Remover este espaço";
+
+            remover.setAttribute(
+                "aria-label",
+                `Remover espaço ${indice + 1} da mochila`
+            );
+
+
+            nome.addEventListener(
+                "input",
+                () => {
+
+                    dados.mochila[indice].nome =
+                        nome.value;
+
+                    salvarFichas();
+
+                }
+            );
+
+
+            descricao.addEventListener(
+                "input",
+                () => {
+
+                    dados.mochila[indice].descricao =
+                        descricao.value;
+
+                    salvarFichas();
+
+                }
+            );
+
+
+            remover.addEventListener(
+                "click",
+                () => {
+
+                    removerSlotMochila(
+                        indice
+                    );
+
+                }
+            );
+
+
+            slot.appendChild(numero);
+
+            slot.appendChild(remover);
+
+            slot.appendChild(nome);
+
+            slot.appendChild(descricao);
+
+            mochilaGrid.appendChild(slot);
+
+        }
+    );
+}
+
+
+/* =========================================================
+   ADICIONAR SLOT
+   ========================================================= */
+
+function adicionarSlotMochila() {
+
+    const ficha =
+        obterFichaAtual();
+
+    if (!ficha) {
         return;
     }
 
 
-    fichaAtualId =
-        nova.id;
+    ficha.dados.mochila =
+        normalizarMochila(
+            ficha.dados.mochila
+        );
 
 
-    normalizarState(
-        nova.dados
+    ficha.dados.mochila.push({
+        nome: "",
+        descricao: ""
+    });
+
+
+    salvarFichas();
+
+    renderizarMochila(
+        ficha.dados
     );
 
-
-    preencherFormulario();
-
-    renderTabs();
-
-    salvarSistema();
-
-    mostrarFicha();
 
     mostrarStatus(
-        "ficha carregada"
+        "Espaço adicionado à mochila."
+    );
+}
+
+
+/* =========================================================
+   REMOVER SLOT
+   ========================================================= */
+
+function removerSlotMochila(indice) {
+
+    const ficha =
+        obterFichaAtual();
+
+    if (!ficha) {
+        return;
+    }
+
+
+    const mochila =
+        ficha.dados.mochila;
+
+
+    if (!Array.isArray(mochila)) {
+        return;
+    }
+
+
+    /*
+     * Mantemos pelo menos 1 espaço.
+     * A mochila pode crescer indefinidamente,
+     * mas uma mochila completamente inexistente
+     * fica um pouco inútil, mesmo para padrões medievais.
+     */
+
+    if (mochila.length <= 1) {
+
+        mochila[0] = {
+            nome: "",
+            descricao: ""
+        };
+
+    } else {
+
+        mochila.splice(
+            indice,
+            1
+        );
+
+    }
+
+
+    salvarFichas();
+
+    renderizarMochila(
+        ficha.dados
     );
 
+    mostrarStatus(
+        "Espaço removido."
+    );
+}
+
+
+/* =========================================================
+   EVENTOS DOS CAMPOS
+   ========================================================= */
+
+function registrarAutosave(elemento) {
+
+    elemento.addEventListener(
+        "input",
+        () => {
+
+            salvarEstadoDaInterface();
+
+            salvarFichas();
+
+            atualizarAbasSemTrocar();
+
+        }
+    );
+}
+
+
+registrarAutosave(nomeInput);
+registrarAutosave(jogadorInput);
+registrarAutosave(vidaAtualInput);
+registrarAutosave(vidaMaxInput);
+registrarAutosave(defesaInput);
+registrarAutosave(vantagensInput);
+registrarAutosave(anotacoesInput);
+
+
+for (const input of inventarioInputs) {
+    registrarAutosave(input);
+}
+
+
+/* =========================================================
+   ATUALIZAR ABAS SEM RECARREGAR A FICHA
+   ========================================================= */
+
+function atualizarAbasSemTrocar() {
+
+    const ficha =
+        obterFichaAtual();
+
+    if (!ficha) {
+        return;
+    }
+
+
+    atualizarTituloFicha(ficha);
+
+
+    const tab =
+        sheetTabs.querySelector(
+            `.sheet-tab[data-id="${ficha.id}"]`
+        );
+
+
+    if (!tab) {
+        renderizarAbas();
+        return;
+    }
+
+
+    const titulo =
+        tab.querySelector(
+            ".sheet-tab-title"
+        );
+
+
+    if (titulo) {
+        titulo.textContent =
+            ficha.titulo;
+    }
 }
 
 
@@ -1039,362 +1266,536 @@ function trocarFicha(
    NOVA FICHA
    ========================================================= */
 
-function novaFicha() {
-
-    if (fichaAtualId) {
-
-        const atual =
-            fichas.find(
-                (ficha) =>
-                    ficha.id ===
-                    fichaAtualId
-            );
-
-
-        if (atual) {
-
-            lerFormularioParaState();
-
-            atual.dados =
-                JSON.parse(
-                    JSON.stringify(state)
-                );
-
-
-            if (
-                state.nome.trim()
-            ) {
-
-                atual.titulo =
-                    state.nome.trim();
-
-            }
-
-        }
-
+btnNovaFicha.addEventListener(
+    "click",
+    () => {
+        criarFicha();
     }
+);
 
 
-    const nova =
-        criarFicha(
-            "Nova ficha"
-        );
-
-
-    fichas.push(
-        nova
-    );
-
-
-    fichaAtualId =
-        nova.id;
-
-
-    normalizarState(
-        nova.dados
-    );
-
-
-    preencherFormulario();
-
-    salvarSistema();
-
-    renderTabs();
-
-    mostrarFicha();
-
-
-    mostrarStatus(
-        "nova ficha"
-    );
-
-
-    setTimeout(
-        () => {
-
-            campos.nome.focus();
-
-        },
-        50
-    );
-
-}
+btnHomeNovaFicha.addEventListener(
+    "click",
+    () => {
+        criarFicha();
+    }
+);
 
 
 /* =========================================================
-   FECHAR FICHA
+   MOCHILA
    ========================================================= */
 
-function fecharFicha(
-    id
-) {
+btnAdicionarSlot.addEventListener(
+    "click",
+    () => {
+        adicionarSlotMochila();
+    }
+);
+
+
+/* =========================================================
+   EXPORTAR
+   ========================================================= */
+
+btnExportar.addEventListener(
+    "click",
+    exportarFichaAtual
+);
+
+
+function exportarFichaAtual() {
 
     const ficha =
-        fichas.find(
-            (item) =>
-                item.id === id
-        );
-
+        obterFichaAtual();
 
     if (!ficha) {
+
+        mostrarStatus(
+            "Não há ficha aberta para exportar."
+        );
+
         return;
     }
 
 
-    if (
-        id ===
-        fichaAtualId
-    ) {
+    salvarEstadoDaInterface();
 
-        lerFormularioParaState();
+    atualizarTituloFicha(ficha);
 
-        ficha.dados =
-            JSON.parse(
-                JSON.stringify(state)
-            );
+    salvarFichas();
 
 
-        if (
-            state.nome.trim()
-        ) {
+    const pacote = {
+        tipo: "anatema-ficha",
+        versao: 3,
+        exportadoEm:
+            new Date().toISOString(),
 
-            ficha.titulo =
-                state.nome.trim();
-
+        ficha: {
+            titulo: ficha.titulo,
+            dados: ficha.dados
         }
-
-    }
-
-
-    const nome =
-        id === fichaAtualId
-            ? (
-                state.nome.trim() ||
-                ficha.titulo ||
-                "Nova ficha"
-            )
-            : (
-                ficha.dados?.nome?.trim() ||
-                ficha.titulo ||
-                "Nova ficha"
-            );
+    };
 
 
-    const confirmar =
-        confirm(
-            `Fechar a ficha "${nome}"?\n\nEla será removida deste navegador.`
+    const json =
+        JSON.stringify(
+            pacote,
+            null,
+            2
         );
 
 
-    if (!confirmar) {
-        return;
-    }
-
-
-    const eraAtual =
-        id ===
-        fichaAtualId;
-
-
-    const indice =
-        fichas.findIndex(
-            (item) =>
-                item.id === id
-        );
-
-
-    fichas =
-        fichas.filter(
-            (item) =>
-                item.id !== id
-        );
-
-
-    /*
-     * Se não restou nenhuma ficha,
-     * volta para a página inicial.
-     */
-
-    if (
-        fichas.length === 0
-    ) {
-
-        fichaAtualId =
-            null;
-
-        state =
-            estadoVazio();
-
-        salvarSistema();
-
-        renderTabs();
-
-        mostrarHome();
-
-        return;
-
-    }
-
-
-    /*
-     * Se fechou uma ficha que não era a atual,
-     * apenas atualiza a lista.
-     */
-
-    if (!eraAtual) {
-
-        salvarSistema();
-
-        renderTabs();
-
-        return;
-
-    }
-
-
-    /*
-     * Escolhe a ficha mais próxima
-     * da posição que foi fechada.
-     */
-
-    const novoIndice =
-        Math.min(
-            indice,
-            fichas.length - 1
-        );
-
-
-    const nova =
-        fichas[
-        novoIndice
-        ];
-
-
-    fichaAtualId =
-        nova.id;
-
-
-    normalizarState(
-        nova.dados
-    );
-
-
-    preencherFormulario();
-
-    salvarSistema();
-
-    renderTabs();
-
-    mostrarFicha();
-
-    mostrarStatus(
-        "ficha fechada"
-    );
-
-}
-
-
-/* =========================================================
-   MIGRAÇÃO V2
-   ========================================================= */
-
-function migrarV2(
-    dados
-) {
-
-    if (
-        !dados ||
-        !Array.isArray(
-            dados.fichas
-        ) ||
-        !dados.fichas.length
-    ) {
-
-        return false;
-
-    }
-
-
-    fichas =
-        dados.fichas.map(
-            (ficha) => {
-
-                const nova =
-                    criarFicha(
-                        ficha.titulo ||
-                        ficha.dados?.nome ||
-                        "Nova ficha"
-                    );
-
-
-                nova.id =
-                    ficha.id ||
-                    criarId();
-
-
-                normalizarState(
-                    ficha.dados
-                );
-
-
-                nova.dados =
-                    JSON.parse(
-                        JSON.stringify(state)
-                    );
-
-
-                return nova;
-
+    const blob =
+        new Blob(
+            [json],
+            {
+                type: "application/json"
             }
         );
 
 
-    fichaAtualId =
-        dados.fichaAtualId;
+    const url =
+        URL.createObjectURL(blob);
+
+
+    const link =
+        document.createElement("a");
+
+    link.href = url;
+
+    link.download =
+        sanitizarNomeArquivo(
+            ficha.titulo
+        ) + ".json";
+
+
+    document.body.appendChild(link);
+
+    link.click();
+
+    link.remove();
+
+
+    URL.revokeObjectURL(url);
+
+
+    mostrarStatus(
+        "Ficha exportada."
+    );
+}
+
+
+function sanitizarNomeArquivo(nome) {
+
+    return (
+        nome
+            .replace(/[<>:"/\\|?*]/g, "")
+            .trim()
+            .substring(0, 80)
+        || "anatema-ficha"
+    );
+}
+
+
+/* =========================================================
+   IMPORTAÇÃO
+   ========================================================= */
+
+inputImportar.addEventListener(
+    "change",
+    evento => {
+        processarImportacao(
+            evento.target.files?.[0]
+        );
+
+        evento.target.value = "";
+    }
+);
+
+
+inputImportarHome.addEventListener(
+    "change",
+    evento => {
+        processarImportacao(
+            evento.target.files?.[0]
+        );
+
+        evento.target.value = "";
+    }
+);
+
+
+function processarImportacao(arquivo) {
+
+    if (!arquivo) {
+        return;
+    }
+
+
+    const leitor =
+        new FileReader();
+
+
+    leitor.onload = () => {
+
+        try {
+
+            const conteudo =
+                JSON.parse(
+                    leitor.result
+                );
+
+
+            /*
+             * Exportação nova de ficha individual.
+             */
+
+            if (
+                conteudo &&
+                conteudo.tipo === "anatema-ficha" &&
+                conteudo.ficha
+            ) {
+
+                const dados =
+                    normalizarEstado(
+                        conteudo.ficha.dados
+                    );
+
+
+                const ficha =
+                    criarFicha(dados);
+
+
+                if (
+                    conteudo.ficha.titulo &&
+                    !dados.nome.trim()
+                ) {
+
+                    ficha.titulo =
+                        conteudo.ficha.titulo;
+
+                }
+
+
+                salvarFichas();
+
+                renderizarAbas();
+
+                carregarFichaAtual();
+
+                mostrarStatus(
+                    "Ficha importada."
+                );
+
+                return;
+            }
+
+
+            /*
+             * Compatibilidade com exportações antigas
+             * que eram simplesmente o objeto de dados.
+             */
+
+            if (
+                conteudo &&
+                (
+                    conteudo.nome !== undefined ||
+                    conteudo.aptidoes !== undefined ||
+                    conteudo.inventario !== undefined
+                )
+            ) {
+
+                criarFicha(
+                    normalizarEstado(
+                        conteudo
+                    )
+                );
+
+                mostrarStatus(
+                    "Ficha antiga importada."
+                );
+
+                return;
+            }
+
+
+            /*
+             * Importação de conjunto de fichas.
+             */
+
+            if (
+                conteudo &&
+                conteudo.tipo === "anatema-fichas" &&
+                Array.isArray(conteudo.fichas)
+            ) {
+
+                let quantidade = 0;
+
+
+                for (
+                    const item of conteudo.fichas
+                ) {
+
+                    const dados =
+                        normalizarEstado(
+                            item.dados || item
+                        );
+
+
+                    const ficha = {
+                        id: criarId(),
+
+                        titulo:
+                            item.titulo ||
+                            dados.nome ||
+                            "Nova ficha",
+
+                        dados
+                    };
+
+
+                    fichas.push(ficha);
+
+                    fichaAtualId =
+                        ficha.id;
+
+                    quantidade++;
+                }
+
+
+                salvarFichas();
+
+                renderizarAbas();
+
+                carregarFichaAtual();
+
+                mostrarFicha();
+
+                mostrarStatus(
+                    `${quantidade} ficha(s) importada(s).`
+                );
+
+                return;
+            }
+
+
+            throw new Error(
+                "Formato de arquivo não reconhecido."
+            );
+
+        } catch (erro) {
+
+            console.error(
+                "Erro ao importar ficha:",
+                erro
+            );
+
+
+            window.alert(
+                "Não foi possível importar este arquivo.\n\n" +
+                "Verifique se ele é um JSON de ficha ANATEMA válido."
+            );
+
+        }
+
+    };
+
+
+    leitor.readAsText(
+        arquivo,
+        "UTF-8"
+    );
+}
+
+
+/* =========================================================
+   SALVAMENTO
+   ========================================================= */
+
+function salvarFichas() {
+
+    try {
+
+        localStorage.setItem(
+            STORAGE_KEY,
+            JSON.stringify({
+                versao: 3,
+                fichas,
+                fichaAtualId
+            })
+        );
+
+    } catch (erro) {
+
+        console.error(
+            "Erro ao salvar fichas:",
+            erro
+        );
+
+        mostrarStatus(
+            "Não foi possível salvar localmente."
+        );
+    }
+}
+
+
+/* =========================================================
+   CARREGAMENTO
+   ========================================================= */
+
+function carregarFichas() {
+
+    let armazenamento = null;
+
+
+    /*
+     * Primeiro tenta a versão atual.
+     */
+
+    try {
+
+        const salvo =
+            localStorage.getItem(
+                STORAGE_KEY
+            );
+
+
+        if (salvo) {
+            armazenamento =
+                JSON.parse(salvo);
+        }
+
+    } catch (erro) {
+
+        console.error(
+            "Erro lendo fichas atuais:",
+            erro
+        );
+
+    }
+
+
+    /*
+     * Caso ainda não exista a versão 3,
+     * tenta migrar a versão anterior.
+     */
+
+    if (!armazenamento) {
+
+        armazenamento =
+            migrarVersoesAntigas();
+
+    }
 
 
     if (
+        armazenamento &&
+        Array.isArray(
+            armazenamento.fichas
+        )
+    ) {
+
+        fichas =
+            armazenamento.fichas.map(
+                ficha => {
+
+                    const dados =
+                        normalizarEstado(
+                            ficha.dados || {}
+                        );
+
+
+                    return {
+                        id:
+                            ficha.id ||
+                            criarId(),
+
+                        titulo:
+                            ficha.titulo ||
+                            dados.nome ||
+                            "Nova ficha",
+
+                        dados
+                    };
+
+                }
+            );
+
+
+        fichaAtualId =
+            armazenamento.fichaAtualId ||
+            fichas[0]?.id ||
+            null;
+
+    } else {
+
+        fichas = [];
+
+        fichaAtualId = null;
+
+    }
+
+
+    /*
+     * Garante que a ficha atual realmente existe.
+     */
+
+    if (
+        fichaAtualId &&
         !fichas.some(
-            (ficha) =>
-                ficha.id ===
-                fichaAtualId
+            ficha =>
+                ficha.id === fichaAtualId
         )
     ) {
 
         fichaAtualId =
-            fichas[0].id;
+            fichas[0]?.id ||
+            null;
 
     }
 
 
-    return true;
-
+    salvarFichas();
 }
 
 
 /* =========================================================
-   CARREGAR SISTEMA
+   MIGRAÇÃO
    ========================================================= */
 
-function carregarSistema() {
+function migrarVersoesAntigas() {
 
     /*
-     * V3
+     * Versão v2:
+     *
+     * {
+     *   fichas: [
+     *     {
+     *       id,
+     *       titulo,
+     *       dados
+     *     }
+     *   ],
+     *   fichaAtualId
+     * }
      */
 
-    const salvo =
-        localStorage.getItem(
-            STORAGE_KEY
-        );
+
+    try {
+
+        const antiga =
+            localStorage.getItem(
+                "anatema-fichas-v2"
+            );
 
 
-    if (salvo) {
-
-        try {
+        if (antiga) {
 
             const dados =
                 JSON.parse(
-                    salvo
+                    antiga
                 );
 
 
@@ -1404,530 +1805,153 @@ function carregarSistema() {
                 )
             ) {
 
-                fichas =
-                    dados.fichas;
-
-
-                fichaAtualId =
-                    dados.fichaAtualId;
-
-
-                /*
-                 * V3 agora permite zero fichas.
-                 */
-
-                if (
-                    fichas.length === 0
-                ) {
-
-                    fichaAtualId =
-                        null;
-
-                    state =
-                        estadoVazio();
-
-                    mostrarHome();
-
-                    renderTabs();
-
-                    return;
-
-                }
-
-
-                if (
-                    !fichas.some(
-                        (ficha) =>
-                            ficha.id ===
-                            fichaAtualId
-                    )
-                ) {
-
-                    fichaAtualId =
-                        fichas[0].id;
-
-                }
-
-
-                const atual =
-                    fichas.find(
-                        (ficha) =>
-                            ficha.id ===
-                            fichaAtualId
-                    );
-
-
-                normalizarState(
-                    atual.dados
-                );
-
-
-                preencherFormulario();
-
-                renderTabs();
-
-                mostrarFicha();
-
-                return;
+                return {
+                    versao: 3,
+                    fichas:
+                        dados.fichas,
+                    fichaAtualId:
+                        dados.fichaAtualId ||
+                        dados.fichas[0]?.id ||
+                        null
+                };
 
             }
 
-        } catch (erro) {
-
-            console.error(
-                "Erro ao carregar ANATEMA:",
-                erro
-            );
-
         }
+
+    } catch (erro) {
+
+        console.error(
+            "Erro migrando v2:",
+            erro
+        );
 
     }
 
 
     /*
-     * V2
+     * Versão v1:
+     *
+     * Um único objeto de ficha.
      */
 
-    const salvoV2 =
-        localStorage.getItem(
-            OLD_STORAGE_KEY_V2
-        );
+    try {
+
+        const antiga =
+            localStorage.getItem(
+                "anatema-ficha-v1"
+            );
 
 
-    if (salvoV2) {
-
-        try {
+        if (antiga) {
 
             const dados =
                 JSON.parse(
-                    salvoV2
+                    antiga
                 );
 
 
-            if (
-                migrarV2(
-                    dados
-                )
-            ) {
-
-                const atual =
-                    fichas.find(
-                        (ficha) =>
-                            ficha.id ===
-                            fichaAtualId
-                    );
+            const id =
+                criarId();
 
 
-                normalizarState(
-                    atual.dados
-                );
+            return {
+                versao: 3,
 
+                fichas: [
+                    {
+                        id,
 
-                preencherFormulario();
+                        titulo:
+                            dados.nome ||
+                            "Nova ficha",
 
-                salvarSistema();
+                        dados:
+                            normalizarEstado(
+                                dados
+                            )
+                    }
+                ],
 
-                renderTabs();
-
-                mostrarFicha();
-
-                return;
-
-            }
-
-        } catch (erro) {
-
-            console.error(
-                "Erro ao migrar V2:",
-                erro
-            );
+                fichaAtualId: id
+            };
 
         }
 
-    }
+    } catch (erro) {
 
-
-    /*
-     * V1
-     */
-
-    const salvoV1 =
-        localStorage.getItem(
-            OLD_STORAGE_KEY_V1
+        console.error(
+            "Erro migrando v1:",
+            erro
         );
 
-
-    if (salvoV1) {
-
-        try {
-
-            const dados =
-                JSON.parse(
-                    salvoV1
-                );
-
-
-            normalizarState(
-                dados
-            );
-
-
-            const ficha =
-                criarFicha(
-                    dados.nome ||
-                    "Ficha antiga"
-                );
-
-
-            ficha.dados =
-                JSON.parse(
-                    JSON.stringify(state)
-                );
-
-
-            fichas = [
-                ficha
-            ];
-
-
-            fichaAtualId =
-                ficha.id;
-
-
-            preencherFormulario();
-
-            salvarSistema();
-
-            renderTabs();
-
-            mostrarFicha();
-
-            return;
-
-        } catch (erro) {
-
-            console.error(
-                "Erro ao migrar V1:",
-                erro
-            );
-
-        }
-
     }
 
 
-    /*
-     * PRIMEIRO ACESSO:
-     * nenhuma ficha.
-     */
-
-    fichas = [];
-
-    fichaAtualId =
-        null;
-
-    state =
-        estadoVazio();
-
-    salvarSistema();
-
-    renderTabs();
-
-    mostrarHome();
-
+    return null;
 }
 
 
 /* =========================================================
-   EXPORTAR
+   STATUS
    ========================================================= */
 
-document
-    .getElementById("btnExportar")
-    .addEventListener(
-        "click",
-        () => {
-
-            if (
-                !fichaAtualId
-            ) {
-
-                return;
-
-            }
+let statusTimer = null;
 
 
-            lerFormularioParaState();
+function mostrarStatus(mensagem) {
+
+    statusElement.textContent =
+        mensagem;
 
 
-            const ficha =
-                fichas.find(
-                    (item) =>
-                        item.id ===
-                        fichaAtualId
-                );
-
-
-            if (!ficha) {
-                return;
-            }
-
-
-            ficha.dados =
-                JSON.parse(
-                    JSON.stringify(state)
-                );
-
-
-            if (
-                state.nome.trim()
-            ) {
-
-                ficha.titulo =
-                    state.nome.trim();
-
-            }
-
-
-            const blob =
-                new Blob(
-                    [
-                        JSON.stringify(
-                            state,
-                            null,
-                            2
-                        )
-                    ],
-                    {
-                        type:
-                            "application/json"
-                    }
-                );
-
-
-            const url =
-                URL.createObjectURL(
-                    blob
-                );
-
-
-            const link =
-                document.createElement(
-                    "a"
-                );
-
-
-            link.href =
-                url;
-
-
-            const nomeArquivo =
-                (
-                    state.nome ||
-                    ficha.titulo ||
-                    "ficha"
-                )
-                    .trim()
-                    .replace(
-                        /\s+/g,
-                        "_"
-                    )
-                    .toLowerCase();
-
-
-            link.download =
-                `${nomeArquivo ||
-                "ficha"
-                }-anatema.json`;
-
-
-            link.click();
-
-
-            URL.revokeObjectURL(
-                url
-            );
-
-
-            salvarSistema();
-
-            mostrarStatus(
-                "exportado"
-            );
-
-        }
+    clearTimeout(
+        statusTimer
     );
 
 
-/* =========================================================
-   IMPORTAR
-   ========================================================= */
+    statusTimer =
+        setTimeout(
+            () => {
 
-document
-    .getElementById(
-        "inputImportar"
-    )
-    .addEventListener(
-        "change",
-        (event) => {
+                statusElement.textContent =
+                    "";
 
-            const file =
-                event.target.files[0];
-
-
-            if (!file) {
-                return;
-            }
-
-
-            const reader =
-                new FileReader();
-
-
-            reader.onload =
-                () => {
-
-                    try {
-
-                        const dados =
-                            JSON.parse(
-                                reader.result
-                            );
-
-
-                        normalizarState(
-                            dados
-                        );
-
-
-                        const nova =
-                            criarFicha(
-                                dados.nome ||
-                                "Ficha importada"
-                            );
-
-
-                        nova.dados =
-                            JSON.parse(
-                                JSON.stringify(state)
-                            );
-
-
-                        fichas.push(
-                            nova
-                        );
-
-
-                        fichaAtualId =
-                            nova.id;
-
-
-                        preencherFormulario();
-
-                        salvarSistema();
-
-                        renderTabs();
-
-                        mostrarFicha();
-
-
-                        mostrarStatus(
-                            "importado"
-                        );
-
-
-                    } catch (erro) {
-
-                        console.error(
-                            erro
-                        );
-
-
-                        alert(
-                            "Esse arquivo não é uma ficha válida."
-                        );
-
-                    }
-
-                };
-
-
-            reader.readAsText(
-                file
-            );
-
-
-            event.target.value =
-                "";
-
-        }
-    );
-
-
-/* =========================================================
-   NOVA FICHA
-   ========================================================= */
-
-document
-    .getElementById("btnNovo")
-    .addEventListener(
-        "click",
-        novaFicha
-    );
-
-
-document
-    .getElementById("btnHomeNova")
-    .addEventListener(
-        "click",
-        novaFicha
-    );
-
-
-/* =========================================================
-   EVENTOS DOS CAMPOS
-   ========================================================= */
-
-Object
-    .values(campos)
-    .forEach(
-        (elemento) => {
-
-            elemento.addEventListener(
-                "input",
-                saveDebounced
-            );
-
-        }
-    );
-
-
-invInputs.forEach(
-    (elemento) => {
-
-        elemento.addEventListener(
-            "input",
-            saveDebounced
+            },
+            2500
         );
-
-    }
-);
-
-
-mochilaInputs.forEach(
-    (elemento) => {
-
-        elemento.addEventListener(
-            "input",
-            saveDebounced
-        );
-
-    }
-);
+}
 
 
 /* =========================================================
    INICIALIZAÇÃO
    ========================================================= */
 
-carregarSistema();
+function iniciar() {
+
+    carregarFichas();
+
+    renderizarAbas();
+
+
+    if (
+        fichaAtualId &&
+        fichas.length > 0
+    ) {
+
+        carregarFichaAtual();
+
+        mostrarFicha();
+
+    } else {
+
+        fichaAtualId = null;
+
+        mostrarHome();
+
+    }
+
+}
+
+
+iniciar();
