@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>ANATEMA — Ficha de Personagem</title>
+    <title>ANÁTEMA — Ficha de Personagem</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -96,7 +96,7 @@
             </div>
 
             <div class="home-title">
-                ANATEMA
+                ANÁTEMA
             </div>
 
             <div class="home-subtitle">
@@ -163,27 +163,36 @@
 
                 <div class="foto-perfil-row">
 
-                    <label class="foto-perfil"
-                           id="fotoPerfilLabel"
-                           title="Clique para adicionar uma imagem do personagem">
+                    <div class="foto-perfil-moldura">
 
-                        <img id="fotoPerfilImg"
-                             class="foto-perfil-img"
-                             alt=""
-                             hidden>
+                        <span class="foto-corner foto-corner-tl"></span>
+                        <span class="foto-corner foto-corner-tr"></span>
+                        <span class="foto-corner foto-corner-bl"></span>
+                        <span class="foto-corner foto-corner-br"></span>
 
-                        <span class="foto-perfil-placeholder"
-                              id="fotoPerfilPlaceholder">
-                            <span class="foto-perfil-icon">✦</span>
-                            <span class="foto-perfil-texto">retrato</span>
-                        </span>
+                        <label class="foto-perfil"
+                               id="fotoPerfilLabel"
+                               title="Clique para adicionar uma imagem do personagem">
 
-                        <input type="file"
-                               id="inputFotoPerfil"
-                               accept="image/*"
-                               hidden>
+                            <img id="fotoPerfilImg"
+                                 class="foto-perfil-img"
+                                 alt=""
+                                 hidden>
 
-                    </label>
+                            <span class="foto-perfil-placeholder"
+                                  id="fotoPerfilPlaceholder">
+                                <span class="foto-perfil-icon">✦</span>
+                                <span class="foto-perfil-texto">retrato</span>
+                            </span>
+
+                            <input type="file"
+                                   id="inputFotoPerfil"
+                                   accept="image/*"
+                                   hidden>
+
+                        </label>
+
+                    </div>
 
                     <button type="button"
                             class="foto-perfil-remover"
@@ -198,6 +207,27 @@
 
 
                 <div class="identidade-campos">
+
+                    <!-- MINI LOGO ANÁTEMA -->
+
+                    <div class="mini-emblem"
+                         aria-hidden="true">
+
+                        <div class="mini-emblem-symbol">
+
+                            <div class="mini-emblem-circle"></div>
+
+                            <div class="mini-emblem-cross-v"></div>
+                            <div class="mini-emblem-cross-h"></div>
+
+                        </div>
+
+                        <span class="mini-emblem-title">
+                            Anátema
+                        </span>
+
+                    </div>
+
 
                     <!-- NOME -->
 
@@ -251,7 +281,53 @@
             </div>
 
 
-            <!-- VIDA / DEFESA -->
+            <!-- RAÇA / ESPECIALIZAÇÃO / ESTILO DE COMBATE -->
+
+            <div class="traits-row">
+
+                <label class="field field-trait">
+
+                    <span class="tag">
+                        Raça
+                    </span>
+
+                    <input type="text"
+                           id="raca"
+                           placeholder="—"
+                           autocomplete="off">
+
+                </label>
+
+                <label class="field field-trait">
+
+                    <span class="tag">
+                        Especialização
+                    </span>
+
+                    <input type="text"
+                           id="especializacao"
+                           placeholder="—"
+                           autocomplete="off">
+
+                </label>
+
+                <label class="field field-trait">
+
+                    <span class="tag">
+                        Estilo de Combate
+                    </span>
+
+                    <input type="text"
+                           id="estiloCombate"
+                           placeholder="—"
+                           autocomplete="off">
+
+                </label>
+
+            </div>
+
+
+            <!-- VIDA / ESPÍRITO / DEFESA -->
 
             <div class="stat-row">
 
@@ -268,7 +344,7 @@
                         <div class="stat-value-group">
 
                             <span class="stat-minmax">
-                                Min
+                                Atual
                             </span>
 
                             <input type="number"
@@ -290,6 +366,51 @@
 
                             <input type="number"
                                    id="vidaMax"
+                                   class="stat-input"
+                                   min="0">
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div class="stat-box">
+
+                    <span class="stat-label">
+                        Espírito
+                    </span>
+
+                    <div class="ornament-line"></div>
+
+                    <div class="stat-values">
+
+                        <div class="stat-value-group">
+
+                            <span class="stat-minmax">
+                                Atual
+                            </span>
+
+                            <input type="number"
+                                   id="espiritoAtual"
+                                   class="stat-input"
+                                   min="0">
+
+                        </div>
+
+                        <span class="stat-sep">
+                            /
+                        </span>
+
+                        <div class="stat-value-group">
+
+                            <span class="stat-minmax">
+                                Máx
+                            </span>
+
+                            <input type="number"
+                                   id="espiritoMax"
                                    class="stat-input"
                                    min="0">
 
@@ -348,11 +469,11 @@
 
                 <h2 class="section-title">
                     <span>✦</span>
-                    Aptidões
+                    Atributos &amp; Aptidões
                     <span>✦</span>
                 </h2>
 
-                <div class="aptidoes-grid"
+                <div class="atributos-secao"
                      id="aptidoesGrid"></div>
 
             </div>
@@ -463,36 +584,92 @@
                 </div>
 
 
-                <!-- VANTAGENS -->
+                <!-- HABILIDADES -->
 
                 <div class="section">
 
                     <h2 class="section-title">
                         <span>✦</span>
-                        Vantagens
+                        Habilidades
                         <span>✦</span>
                     </h2>
 
-                    <div class="inventario vantagens-box">
+                    <div class="inventario habilidades-box">
 
                         <div class="backpack-header">
 
                             <span class="weight-total">
-                                Vantagens adquiridas
+                                Habilidades adquiridas
                             </span>
 
                             <button type="button"
                                     class="backpack-add"
-                                    id="btnAdicionarVantagem"
-                                    title="Adicionar vantagem"
-                                    aria-label="Adicionar vantagem">
+                                    id="btnAdicionarHabilidade"
+                                    title="Adicionar habilidade"
+                                    aria-label="Adicionar habilidade">
                                 +
                             </button>
 
                         </div>
 
                         <div class="mochila-list"
-                             id="vantagensGrid"></div>
+                             id="habilidadesGrid"></div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- TRAÇOS -->
+
+                <div class="section">
+
+                    <h2 class="section-title">
+                        <span>✦</span>
+                        Traços
+                        <span>✦</span>
+                    </h2>
+
+                    <div class="inventario habilidades-box">
+
+                        <div class="backpack-header">
+
+                            <div class="tracos-subtabs"
+                                 role="tablist"
+                                 aria-label="Tipo de traço">
+
+                                <button type="button"
+                                        class="tracos-subtab active"
+                                        id="btnTracosPositivos"
+                                        data-tipo="positivos"
+                                        role="tab"
+                                        aria-selected="true">
+                                    ✦ Positivos
+                                </button>
+
+                                <button type="button"
+                                        class="tracos-subtab tracos-subtab-negativo"
+                                        id="btnTracosNegativos"
+                                        data-tipo="negativos"
+                                        role="tab"
+                                        aria-selected="false">
+                                    ☠ Negativos
+                                </button>
+
+                            </div>
+
+                            <button type="button"
+                                    class="backpack-add"
+                                    id="btnAdicionarTraco"
+                                    title="Adicionar traço"
+                                    aria-label="Adicionar traço">
+                                +
+                            </button>
+
+                        </div>
+
+                        <div class="mochila-list"
+                             id="tracosGrid"></div>
 
                     </div>
 
@@ -524,35 +701,6 @@
 
                 </div>
 
-
-                <!-- EMBLEMA -->
-
-                <div class="emblem"
-                     aria-hidden="true">
-
-                    <div class="emblem-top">
-                        ── ◆ ──
-                    </div>
-
-                    <div class="emblem-symbol">
-
-                        <div class="emblem-circle"></div>
-
-                        <div class="emblem-cross-v"></div>
-                        <div class="emblem-cross-h"></div>
-
-                    </div>
-
-                    <div class="emblem-title">
-                        ANATEMA
-                    </div>
-
-                    <div class="emblem-bottom">
-                        ✦
-                    </div>
-
-                </div>
-
             </div>
 
         </section>
@@ -568,7 +716,7 @@
          id="anotacoesModalOverlay"
          hidden>
 
-        <div class="modal-box"
+        <div class="modal-box modal-box-anotacoes"
              role="dialog"
              aria-modal="true"
              aria-labelledby="anotacoesModalTitulo">
@@ -590,7 +738,7 @@
 
             </div>
 
-            <div class="inventario vantagens-box modal-anotacoes-box">
+            <div class="inventario habilidades-box modal-anotacoes-box">
 
                 <div class="backpack-header">
 
@@ -611,6 +759,39 @@
                 <div class="mochila-list modal-anotacoes-lista"
                      id="anotacoesGrid"></div>
 
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =========================================================
+         POPUP DE ROLAGEM DE DADOS
+         ========================================================= -->
+
+    <div class="dice-popup-overlay"
+         id="dicePopupOverlay">
+
+        <div class="dice-popup"
+             id="dicePopup"
+             role="dialog"
+             aria-live="polite">
+
+            <button type="button"
+                    class="dice-popup-close"
+                    id="btnFecharDicePopup"
+                    title="Fechar"
+                    aria-label="Fechar resultado da rolagem">
+                ×
+            </button>
+
+            <div class="dice-popup-formula"
+                 id="dicePopupFormula"></div>
+
+            <div class="dice-popup-resultado"
+                 id="dicePopupResultado">
+                0
             </div>
 
         </div>

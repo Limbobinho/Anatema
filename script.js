@@ -1,27 +1,55 @@
 /* =========================================================
-   ANATEMA — SISTEMA DE FICHAS
+   ANÁTEMA — SISTEMA DE FICHAS
    ========================================================= */
 
 const STORAGE_KEY = "anatema-fichas-v3";
 
-const APTIDOES = [
-    "Agilidade",
-    "Luta",
-    "Gambiarra",
-    "Ocultismo",
-    "Postura",
-    "Vigor",
-    "Vontade",
-    "Furtividade",
-    "Robustez",
-    "Social",
-    "Percepção",
-    "Pontaria",
-    "Socorro",
-    "Raciocínio"
+const ATRIBUTOS = [
+    "Físico",
+    "Mente",
+    "Alma"
 ];
 
+const APTIDOES_POR_ATRIBUTO = {
+    "Físico": [
+        "Agilidade",
+        "Força",
+        "Postura",
+        "Vigor",
+        "Furtividade"
+    ],
+    "Mente": [
+        "Raciocínio",
+        "Medicina",
+        "Percepção",
+        "Social",
+        "Ofício"
+    ],
+    "Alma": [
+        "Vontade",
+        "Ocultismo",
+        "Sintonia"
+    ]
+};
+
+const APTIDOES = ATRIBUTOS.flatMap(
+    (atributo) => APTIDOES_POR_ATRIBUTO[atributo]
+);
+
+const ATRIBUTO_DA_APTIDAO = {};
+
+for (const atributo of ATRIBUTOS) {
+
+    for (const aptidao of APTIDOES_POR_ATRIBUTO[atributo]) {
+        ATRIBUTO_DA_APTIDAO[aptidao] = atributo;
+    }
+
+}
+
 const PIPS_POR_APTIDAO = 3;
+
+const ATRIBUTO_MAX = 3;
+const PONTOS_POR_ATRIBUTO = 3;
 
 
 /* =========================================================
@@ -45,8 +73,14 @@ const statusElement = document.getElementById("status");
 const nomeInput = document.getElementById("nome");
 const jogadorInput = document.getElementById("jogador");
 
+const racaInput = document.getElementById("raca");
+const especializacaoInput = document.getElementById("especializacao");
+const estiloCombateInput = document.getElementById("estiloCombate");
+
 const vidaAtualInput = document.getElementById("vidaAtual");
 const vidaMaxInput = document.getElementById("vidaMax");
+const espiritoAtualInput = document.getElementById("espiritoAtual");
+const espiritoMaxInput = document.getElementById("espiritoMax");
 const defesaValorEl = document.getElementById("defesaValor");
 
 const anotacoesGrid = document.getElementById("anotacoesGrid");
@@ -57,6 +91,12 @@ const anotacoesModalOverlay = document.getElementById("anotacoesModalOverlay");
 const btnFecharAnotacoes = document.getElementById("btnFecharAnotacoes");
 const anotacoesPreviewEl = document.getElementById("anotacoesPreview");
 
+const dicePopupOverlay = document.getElementById("dicePopupOverlay");
+const dicePopup = document.getElementById("dicePopup");
+const dicePopupFormula = document.getElementById("dicePopupFormula");
+const dicePopupResultado = document.getElementById("dicePopupResultado");
+const btnFecharDicePopup = document.getElementById("btnFecharDicePopup");
+
 const aflicaoGrid = document.getElementById("aflicaoGrid");
 const aptidoesGrid = document.getElementById("aptidoesGrid");
 
@@ -64,8 +104,15 @@ const mochilaGrid = document.getElementById("mochilaGrid");
 const btnAdicionarSlot = document.getElementById("btnAdicionarSlot");
 const pesoTotal = document.getElementById("pesoTotal");
 
-const vantagensGrid = document.getElementById("vantagensGrid");
-const btnAdicionarVantagem = document.getElementById("btnAdicionarVantagem");
+const habilidadesGrid = document.getElementById("habilidadesGrid");
+const btnAdicionarHabilidade = document.getElementById("btnAdicionarHabilidade");
+
+const tracosGrid = document.getElementById("tracosGrid");
+const btnAdicionarTraco = document.getElementById("btnAdicionarTraco");
+const btnTracosPositivos = document.getElementById("btnTracosPositivos");
+const btnTracosNegativos = document.getElementById("btnTracosNegativos");
+
+let tracosAbaAtual = "positivos";
 
 const inventarioInputs = document.querySelectorAll("[data-inv]");
 
@@ -116,6 +163,17 @@ function criarAptidoesVazias() {
 }
 
 
+function criarAtributosVazios() {
+    const atributos = {};
+
+    for (const atributo of ATRIBUTOS) {
+        atributos[atributo] = 0;
+    }
+
+    return atributos;
+}
+
+
 function criarMochilaInicial() {
     return [
         criarItemMochilaVazio(),
@@ -163,7 +221,7 @@ function criarAnotacoesIniciais() {
 }
 
 
-function criarVantagensIniciais() {
+function criarHabilidadesIniciais() {
     return [
         {
             nome: "",
@@ -173,15 +231,42 @@ function criarVantagensIniciais() {
 }
 
 
+function criarTracosIniciais() {
+    return {
+        positivos: [
+            {
+                nome: "",
+                descricao: ""
+            }
+        ],
+        negativos: [
+            {
+                nome: "",
+                descricao: ""
+            }
+        ]
+    };
+}
+
+
 function criarEstadoVazio() {
     return {
         nome: "",
         jogador: "",
 
+        raca: "",
+        especializacao: "",
+        estiloCombate: "",
+
         fotoPerfil: "",
 
         vidaAtual: "",
         vidaMax: "",
+
+        espiritoAtual: "",
+        espiritoMax: "",
+
+        atributos: criarAtributosVazios(),
 
         aptidoes: criarAptidoesVazias(),
 
@@ -193,7 +278,9 @@ function criarEstadoVazio() {
 
         mochila: criarMochilaInicial(),
 
-        vantagens: criarVantagensIniciais(),
+        habilidades: criarHabilidadesIniciais(),
+
+        tracos: criarTracosIniciais(),
 
         anotacoes: criarAnotacoesIniciais()
     };
@@ -218,11 +305,65 @@ function normalizarEstado(dados = {}) {
             ? dados.jogador
             : "";
 
+    estado.raca =
+        typeof dados.raca === "string"
+            ? dados.raca
+            : "";
+
+    estado.especializacao =
+        typeof dados.especializacao === "string"
+            ? dados.especializacao
+            : "";
+
+    estado.estiloCombate =
+        typeof dados.estiloCombate === "string"
+            ? dados.estiloCombate
+            : "";
+
     estado.vidaAtual =
         dados.vidaAtual ?? "";
 
     estado.vidaMax =
         dados.vidaMax ?? "";
+
+    estado.espiritoAtual =
+        dados.espiritoAtual ?? "";
+
+    estado.espiritoMax =
+        dados.espiritoMax ?? "";
+
+
+    const atributosEraAusente =
+        !(
+            dados.atributos &&
+            typeof dados.atributos === "object"
+        );
+
+
+    if (
+        dados.atributos &&
+        typeof dados.atributos === "object"
+    ) {
+
+        for (const atributo of ATRIBUTOS) {
+
+            if (
+                Object.prototype.hasOwnProperty.call(
+                    dados.atributos,
+                    atributo
+                )
+            ) {
+
+                estado.atributos[atributo] =
+                    normalizarAtributo(
+                        dados.atributos[atributo]
+                    );
+
+            }
+
+        }
+
+    }
 
 
     if (
@@ -248,6 +389,43 @@ function normalizarEstado(dados = {}) {
 
         }
 
+    }
+
+
+    /*
+     * Compatibilidade com fichas de antes dos Atributos:
+     * em vez de zerar as aptidões já preenchidas, calculamos
+     * um valor de atributo que comporte o que já foi investido.
+     */
+
+    if (atributosEraAusente) {
+
+        for (const atributo of ATRIBUTOS) {
+
+            const somaExistente =
+                APTIDOES_POR_ATRIBUTO[atributo].reduce(
+                    (total, aptidao) =>
+                        total + (estado.aptidoes[aptidao] || 0),
+                    0
+                );
+
+            estado.atributos[atributo] =
+                normalizarAtributo(
+                    Math.ceil(somaExistente / PONTOS_POR_ATRIBUTO)
+                );
+
+        }
+
+    }
+
+
+    /*
+     * Garante que nenhuma aptidão fique acima do
+     * orçamento de pontos do respectivo atributo.
+     */
+
+    for (const atributo of ATRIBUTOS) {
+        ajustarAptidoesParaOrcamento(estado, atributo);
     }
 
 
@@ -390,22 +568,26 @@ function normalizarEstado(dados = {}) {
 
     /*
      * Compatibilidade: versões antigas guardavam
-     * Vantagens como um único texto livre.
+     * Habilidades como um único texto livre.
      */
 
-    if (typeof dados.vantagens === "string") {
+    if (typeof dados.habilidades === "string") {
 
-        estado.vantagens =
-            dados.vantagens.trim()
-                ? [{ nome: "", descricao: dados.vantagens }]
-                : criarVantagensIniciais();
+        estado.habilidades =
+            dados.habilidades.trim()
+                ? [{ nome: "", descricao: dados.habilidades }]
+                : criarHabilidadesIniciais();
 
     } else {
 
-        estado.vantagens =
-            normalizarVantagens(dados.vantagens);
+        estado.habilidades =
+            normalizarHabilidades(dados.habilidades);
 
     }
+
+
+    estado.tracos =
+        normalizarTracos(dados.tracos);
 
 
     /*
@@ -471,13 +653,13 @@ function normalizarAnotacoes(anotacoes) {
 }
 
 
-function normalizarVantagens(vantagens) {
+function normalizarHabilidades(habilidades) {
 
-    if (!Array.isArray(vantagens)) {
-        return criarVantagensIniciais();
+    if (!Array.isArray(habilidades)) {
+        return criarHabilidadesIniciais();
     }
 
-    const resultado = vantagens.map((item) => {
+    const resultado = habilidades.map((item) => {
 
         if (item && typeof item === "object") {
 
@@ -503,10 +685,23 @@ function normalizarVantagens(vantagens) {
     });
 
     if (resultado.length === 0) {
-        return criarVantagensIniciais();
+        return criarHabilidadesIniciais();
     }
 
     return resultado;
+}
+
+
+function normalizarTracos(tracos) {
+
+    if (!tracos || typeof tracos !== "object") {
+        return criarTracosIniciais();
+    }
+
+    return {
+        positivos: normalizarHabilidades(tracos.positivos),
+        negativos: normalizarHabilidades(tracos.negativos)
+    };
 }
 
 
@@ -530,6 +725,24 @@ function normalizarPip(valor) {
         0,
         Math.min(
             PIPS_POR_APTIDAO,
+            Math.round(numero)
+        )
+    );
+}
+
+
+function normalizarAtributo(valor) {
+
+    const numero = Number(valor);
+
+    if (!Number.isFinite(numero)) {
+        return 0;
+    }
+
+    return Math.max(
+        0,
+        Math.min(
+            ATRIBUTO_MAX,
             Math.round(numero)
         )
     );
@@ -1058,11 +1271,26 @@ function carregarFichaAtual() {
     jogadorInput.value =
         dados.jogador;
 
+    racaInput.value =
+        dados.raca;
+
+    especializacaoInput.value =
+        dados.especializacao;
+
+    estiloCombateInput.value =
+        dados.estiloCombate;
+
     vidaAtualInput.value =
         dados.vidaAtual;
 
     vidaMaxInput.value =
         dados.vidaMax;
+
+    espiritoAtualInput.value =
+        dados.espiritoAtual;
+
+    espiritoMaxInput.value =
+        dados.espiritoMax;
 
     renderizarAnotacoes(dados);
 
@@ -1091,7 +1319,9 @@ function carregarFichaAtual() {
 
     renderizarMochila(dados);
 
-    renderizarVantagens(dados);
+    renderizarHabilidades(dados);
+
+    renderizarTracos(dados);
 }
 
 
@@ -1245,11 +1475,26 @@ function salvarEstadoDaInterface() {
     dados.jogador =
         jogadorInput.value;
 
+    dados.raca =
+        racaInput.value;
+
+    dados.especializacao =
+        especializacaoInput.value;
+
+    dados.estiloCombate =
+        estiloCombateInput.value;
+
     dados.vidaAtual =
         vidaAtualInput.value;
 
     dados.vidaMax =
         vidaMaxInput.value;
+
+    dados.espiritoAtual =
+        espiritoAtualInput.value;
+
+    dados.espiritoMax =
+        espiritoMaxInput.value;
 
 
     for (const input of inventarioInputs) {
@@ -1268,7 +1513,7 @@ function salvarEstadoDaInterface() {
 
 
 /* =========================================================
-   RENDERIZAR APTIDÕES
+   RENDERIZAR ATRIBUTOS E APTIDÕES
    ========================================================= */
 
 function renderizarAptidoes(dados) {
@@ -1278,13 +1523,86 @@ function renderizarAptidoes(dados) {
     aflicaoGrid.innerHTML = "";
 
 
-    for (const aptidao of APTIDOES) {
+    for (const atributo of ATRIBUTOS) {
 
-        criarLinhaAptidao(
-            aptidoesGrid,
-            aptidao,
-            dados.aptidoes[aptidao] || 0
+        const grupo =
+            document.createElement("div");
+
+        grupo.className = "atributo-grupo";
+
+
+        const cabecalho =
+            document.createElement("div");
+
+        cabecalho.className = "atributo-cabecalho";
+
+
+        const nomeAtributo =
+            document.createElement("span");
+
+        nomeAtributo.className = "atributo-nome";
+
+        nomeAtributo.textContent = atributo;
+
+
+        const valorAtributo =
+            dados.atributos[atributo] || 0;
+
+        const orcamento =
+            valorAtributo * PONTOS_POR_ATRIBUTO;
+
+        const usados =
+            APTIDOES_POR_ATRIBUTO[atributo].reduce(
+                (total, aptidao) =>
+                    total + (dados.aptidoes[aptidao] || 0),
+                0
+            );
+
+        const pontosInfo =
+            document.createElement("span");
+
+        pontosInfo.className =
+            "atributo-pontos" +
+            (
+                usados >= orcamento && orcamento > 0
+                    ? " atributo-pontos-cheio"
+                    : ""
+            );
+
+        pontosInfo.textContent =
+            `${usados}/${orcamento} pts`;
+
+
+        cabecalho.appendChild(nomeAtributo);
+
+        cabecalho.appendChild(
+            criarPipsAtributo(atributo, valorAtributo)
         );
+
+        cabecalho.appendChild(pontosInfo);
+
+        grupo.appendChild(cabecalho);
+
+
+        const lista =
+            document.createElement("div");
+
+        lista.className = "atributo-aptidoes";
+
+        for (const aptidao of APTIDOES_POR_ATRIBUTO[atributo]) {
+
+            criarLinhaAptidao(
+                lista,
+                aptidao,
+                dados.aptidoes[aptidao] || 0
+            );
+
+        }
+
+        grupo.appendChild(lista);
+
+
+        aptidoesGrid.appendChild(grupo);
 
     }
 
@@ -1340,6 +1658,16 @@ function criarLinhaAptidao(
 
         label.textContent =
             nome;
+
+        label.title =
+            `Rolar 1d6 + ${nome}`;
+
+        label.addEventListener(
+            "click",
+            () => {
+                rolarAptidao(nome);
+            }
+        );
 
         row.appendChild(label);
 
@@ -1403,9 +1731,168 @@ function criarLinhaAptidao(
 }
 
 
+function criarPipsAtributo(nome, valor) {
+
+    const pips =
+        document.createElement("div");
+
+    pips.className =
+        "apt-pips atributo-pips";
+
+
+    for (
+        let i = 1;
+        i <= ATRIBUTO_MAX;
+        i++
+    ) {
+
+        const pip =
+            document.createElement("button");
+
+        pip.type = "button";
+
+        pip.className =
+            "pip" +
+            (
+                i <= valor
+                    ? " filled"
+                    : ""
+            );
+
+        pip.dataset.value = i;
+
+        pip.setAttribute(
+            "aria-label",
+            `${nome}: ${i} de ${ATRIBUTO_MAX}`
+        );
+
+
+        pip.addEventListener(
+            "click",
+            () => {
+
+                alterarAtributo(
+                    nome,
+                    i
+                );
+
+            }
+        );
+
+
+        pips.appendChild(pip);
+    }
+
+
+    return pips;
+}
+
+
 /* =========================================================
-   ALTERAR APTIDÃO
+   ALTERAR ATRIBUTO / APTIDÃO
    ========================================================= */
+
+function ajustarAptidoesParaOrcamento(dados, atributo) {
+
+    const lista =
+        APTIDOES_POR_ATRIBUTO[atributo];
+
+    const orcamento =
+        (dados.atributos[atributo] || 0) * PONTOS_POR_ATRIBUTO;
+
+    let soma =
+        lista.reduce(
+            (total, aptidao) =>
+                total + (dados.aptidoes[aptidao] || 0),
+            0
+        );
+
+    while (soma > orcamento) {
+
+        let maiorAptidao = null;
+        let maiorValor = 0;
+
+        for (const aptidao of lista) {
+
+            const valor =
+                dados.aptidoes[aptidao] || 0;
+
+            if (valor > maiorValor) {
+                maiorValor = valor;
+                maiorAptidao = aptidao;
+            }
+
+        }
+
+        if (!maiorAptidao) {
+            break;
+        }
+
+        dados.aptidoes[maiorAptidao] -= 1;
+
+        soma -= 1;
+
+    }
+}
+
+
+function alterarAtributo(
+    nome,
+    valorClicado
+) {
+
+    const ficha =
+        obterFichaAtual();
+
+    if (!ficha) {
+        return;
+    }
+
+    const dados =
+        ficha.dados;
+
+    const atual =
+        dados.atributos[nome] || 0;
+
+    const novoValor =
+        atual === valorClicado
+            ? Math.max(0, atual - 1)
+            : valorClicado;
+
+
+    if (novoValor < atual) {
+
+        const pontosGastos =
+            APTIDOES_POR_ATRIBUTO[nome].reduce(
+                (total, aptidao) =>
+                    total + (dados.aptidoes[aptidao] || 0),
+                0
+            );
+
+        const novoOrcamento =
+            novoValor * PONTOS_POR_ATRIBUTO;
+
+        if (pontosGastos > novoOrcamento) {
+
+            mostrarStatus(
+                `Reduza as aptidões de ${nome} antes de baixar o atributo (pontos já distribuídos).`
+            );
+
+            return;
+
+        }
+
+    }
+
+
+    dados.atributos[nome] =
+        novoValor;
+
+    salvarFichas();
+
+    renderizarAptidoes(dados);
+}
+
 
 function alterarAptidao(
     nome,
@@ -1419,9 +1906,11 @@ function alterarAptidao(
         return;
     }
 
+    const dados =
+        ficha.dados;
 
     const atual =
-        ficha.dados.aptidoes[nome] || 0;
+        dados.aptidoes[nome] || 0;
 
 
     /*
@@ -1431,30 +1920,146 @@ function alterarAptidao(
      * Caso contrário, vai até o pip clicado.
      */
 
-    if (
+    const novoValor =
         atual === valorClicado
+            ? Math.max(0, atual - 1)
+            : valorClicado;
+
+
+    const atributo =
+        ATRIBUTO_DA_APTIDAO[nome];
+
+    if (
+        atributo &&
+        novoValor > atual
     ) {
 
-        ficha.dados.aptidoes[nome] =
-            Math.max(
-                0,
-                atual - 1
+        const orcamento =
+            (dados.atributos[atributo] || 0) * PONTOS_POR_ATRIBUTO;
+
+        const somaComNovoValor =
+            APTIDOES_POR_ATRIBUTO[atributo].reduce(
+                (total, aptidaoAtual) =>
+                    total + (
+                        aptidaoAtual === nome
+                            ? novoValor
+                            : (dados.aptidoes[aptidaoAtual] || 0)
+                    ),
+                0
             );
 
-    } else {
+        if (somaComNovoValor > orcamento) {
 
-        ficha.dados.aptidoes[nome] =
-            valorClicado;
+            mostrarStatus(
+                `Sem pontos livres em ${atributo}. Aumente o atributo para liberar mais pontos.`
+            );
+
+            return;
+
+        }
 
     }
 
 
+    dados.aptidoes[nome] =
+        novoValor;
+
     salvarFichas();
 
     renderizarAptidoes(
-        ficha.dados
+        dados
     );
 }
+
+
+/* =========================================================
+   ROLAGEM DE DADOS (1d6 + Aptidão)
+   ========================================================= */
+
+function rolarAptidao(nome) {
+
+    const ficha =
+        obterFichaAtual();
+
+    if (!ficha) {
+        return;
+    }
+
+    const valorAptidao =
+        ficha.dados.aptidoes[nome] || 0;
+
+    const dado =
+        Math.floor(Math.random() * 6) + 1;
+
+    const total =
+        dado + valorAptidao;
+
+    exibirRolagem(
+        nome,
+        dado,
+        valorAptidao,
+        total
+    );
+}
+
+
+function exibirRolagem(
+    nome,
+    dado,
+    valorAptidao,
+    total
+) {
+
+    dicePopupFormula.textContent =
+        `${nome} — 1d6 (${dado}) + ${valorAptidao}`;
+
+    dicePopupResultado.textContent =
+        String(total);
+
+
+    dicePopupOverlay.classList.add("show");
+}
+
+
+function fecharDicePopup() {
+
+    dicePopupOverlay.classList.remove("show");
+}
+
+
+btnFecharDicePopup.addEventListener(
+    "click",
+    fecharDicePopup
+);
+
+
+dicePopupOverlay.addEventListener(
+    "click",
+    (evento) => {
+
+        if (evento.target === dicePopupOverlay) {
+            fecharDicePopup();
+        }
+
+    }
+);
+
+
+document.addEventListener(
+    "keydown",
+    (evento) => {
+
+        if (
+            evento.key === "Escape" &&
+            dicePopupOverlay.classList.contains("show")
+        ) {
+
+            fecharDicePopup();
+
+        }
+
+    }
+);
 
 
 /* =========================================================
@@ -2001,18 +2606,18 @@ function atualizarPesoTotal(dados) {
 
 
 /* =========================================================
-   VANTAGENS
+   HABILIDADES
    ========================================================= */
 
-function renderizarVantagens(dados) {
+function renderizarHabilidades(dados) {
 
-    dados.vantagens =
-        normalizarVantagens(dados.vantagens);
+    dados.habilidades =
+        normalizarHabilidades(dados.habilidades);
 
-    vantagensGrid.innerHTML = "";
+    habilidadesGrid.innerHTML = "";
 
 
-    dados.vantagens.forEach((item, indice) => {
+    dados.habilidades.forEach((item, indice) => {
 
         const slot =
             document.createElement("div");
@@ -2058,7 +2663,7 @@ function renderizarVantagens(dados) {
 
         toggle.setAttribute(
             "aria-label",
-            `Mostrar ou ocultar descrição de ${item.nome || "vantagem"}`
+            `Mostrar ou ocultar descrição de ${item.nome || "habilidade"}`
         );
 
         toggle.addEventListener("click", () => {
@@ -2073,7 +2678,7 @@ function renderizarVantagens(dados) {
 
         nome.className = "mochila-name";
 
-        nome.placeholder = "nome da vantagem";
+        nome.placeholder = "nome da habilidade";
 
         nome.value = item.nome || "";
 
@@ -2084,7 +2689,7 @@ function renderizarVantagens(dados) {
         descricao.className = "mochila-description";
 
         descricao.placeholder =
-            "o que essa vantagem faz...";
+            "o que essa habilidade faz...";
 
         descricao.value = item.descricao || "";
 
@@ -2098,26 +2703,26 @@ function renderizarVantagens(dados) {
 
         remover.textContent = "×";
 
-        remover.title = "Remover esta vantagem";
+        remover.title = "Remover esta habilidade";
 
         remover.setAttribute(
             "aria-label",
-            `Remover vantagem ${indice + 1}`
+            `Remover habilidade ${indice + 1}`
         );
 
 
         nome.addEventListener("input", () => {
-            dados.vantagens[indice].nome = nome.value;
+            dados.habilidades[indice].nome = nome.value;
             salvarFichas();
         });
 
         descricao.addEventListener("input", () => {
-            dados.vantagens[indice].descricao = descricao.value;
+            dados.habilidades[indice].descricao = descricao.value;
             salvarFichas();
         });
 
         remover.addEventListener("click", () => {
-            removerVantagem(indice);
+            removerHabilidade(indice);
         });
 
 
@@ -2133,13 +2738,13 @@ function renderizarVantagens(dados) {
 
         slot.appendChild(descricao);
 
-        vantagensGrid.appendChild(slot);
+        habilidadesGrid.appendChild(slot);
 
     });
 }
 
 
-function adicionarVantagem() {
+function adicionarHabilidade() {
 
     const ficha = obterFichaAtual();
 
@@ -2147,20 +2752,20 @@ function adicionarVantagem() {
         return;
     }
 
-    ficha.dados.vantagens =
-        normalizarVantagens(ficha.dados.vantagens);
+    ficha.dados.habilidades =
+        normalizarHabilidades(ficha.dados.habilidades);
 
-    ficha.dados.vantagens.push({ nome: "", descricao: "" });
+    ficha.dados.habilidades.push({ nome: "", descricao: "" });
 
     salvarFichas();
 
-    renderizarVantagens(ficha.dados);
+    renderizarHabilidades(ficha.dados);
 
-    mostrarStatus("Vantagem adicionada.");
+    mostrarStatus("Habilidade adicionada.");
 }
 
 
-function removerVantagem(indice) {
+function removerHabilidade(indice) {
 
     const ficha = obterFichaAtual();
 
@@ -2168,17 +2773,260 @@ function removerVantagem(indice) {
         return;
     }
 
-    ficha.dados.vantagens.splice(indice, 1);
+    ficha.dados.habilidades.splice(indice, 1);
 
-    if (ficha.dados.vantagens.length === 0) {
-        ficha.dados.vantagens.push({ nome: "", descricao: "" });
+    if (ficha.dados.habilidades.length === 0) {
+        ficha.dados.habilidades.push({ nome: "", descricao: "" });
     }
 
     salvarFichas();
 
-    renderizarVantagens(ficha.dados);
+    renderizarHabilidades(ficha.dados);
 
-    mostrarStatus("Vantagem removida.");
+    mostrarStatus("Habilidade removida.");
+}
+
+
+/* =========================================================
+   TRAÇOS (POSITIVOS / NEGATIVOS)
+   ========================================================= */
+
+function alternarAbaTracos(tipo) {
+
+    if (
+        tipo !== "positivos" &&
+        tipo !== "negativos"
+    ) {
+        return;
+    }
+
+    tracosAbaAtual = tipo;
+
+    const ficha =
+        obterFichaAtual();
+
+    if (!ficha) {
+        return;
+    }
+
+    renderizarTracos(ficha.dados);
+}
+
+
+function renderizarTracos(dados) {
+
+    dados.tracos =
+        normalizarTracos(dados.tracos);
+
+
+    btnTracosPositivos.classList.toggle(
+        "active",
+        tracosAbaAtual === "positivos"
+    );
+
+    btnTracosPositivos.setAttribute(
+        "aria-selected",
+        tracosAbaAtual === "positivos" ? "true" : "false"
+    );
+
+    btnTracosNegativos.classList.toggle(
+        "active",
+        tracosAbaAtual === "negativos"
+    );
+
+    btnTracosNegativos.setAttribute(
+        "aria-selected",
+        tracosAbaAtual === "negativos" ? "true" : "false"
+    );
+
+
+    tracosGrid.innerHTML = "";
+
+    const lista =
+        dados.tracos[tracosAbaAtual];
+
+    const rotulo =
+        tracosAbaAtual === "positivos"
+            ? "traço positivo"
+            : "traço negativo";
+
+
+    lista.forEach((item, indice) => {
+
+        const slot =
+            document.createElement("div");
+
+        slot.className =
+            "mochila-slot" +
+            (
+                (item.descricao || "").trim()
+                    ? " expanded"
+                    : ""
+            );
+
+
+        const head =
+            document.createElement("div");
+
+        head.className =
+            "mochila-slot-head";
+
+
+        const numero =
+            document.createElement("span");
+
+        numero.className =
+            "mochila-number";
+
+        numero.textContent =
+            String(indice + 1);
+
+
+        const toggle =
+            document.createElement("button");
+
+        toggle.type = "button";
+
+        toggle.className =
+            "mochila-toggle";
+
+        toggle.textContent = "▸";
+
+        toggle.title =
+            "Mostrar/ocultar descrição";
+
+        toggle.setAttribute(
+            "aria-label",
+            `Mostrar ou ocultar descrição de ${item.nome || rotulo}`
+        );
+
+        toggle.addEventListener("click", () => {
+            slot.classList.toggle("expanded");
+        });
+
+
+        const nome =
+            document.createElement("input");
+
+        nome.type = "text";
+
+        nome.className = "mochila-name";
+
+        nome.placeholder = `nome do ${rotulo}`;
+
+        nome.value = item.nome || "";
+
+
+        const descricao =
+            document.createElement("textarea");
+
+        descricao.className = "mochila-description";
+
+        descricao.placeholder =
+            "o que esse traço faz...";
+
+        descricao.value = item.descricao || "";
+
+
+        const remover =
+            document.createElement("button");
+
+        remover.type = "button";
+
+        remover.className = "mochila-remove";
+
+        remover.textContent = "×";
+
+        remover.title = "Remover este traço";
+
+        remover.setAttribute(
+            "aria-label",
+            `Remover ${rotulo} ${indice + 1}`
+        );
+
+
+        nome.addEventListener("input", () => {
+            lista[indice].nome = nome.value;
+            salvarFichas();
+        });
+
+        descricao.addEventListener("input", () => {
+            lista[indice].descricao = descricao.value;
+            salvarFichas();
+        });
+
+        remover.addEventListener("click", () => {
+            removerTraco(indice);
+        });
+
+
+        slot.appendChild(numero);
+
+        slot.appendChild(remover);
+
+        head.appendChild(toggle);
+
+        head.appendChild(nome);
+
+        slot.appendChild(head);
+
+        slot.appendChild(descricao);
+
+        tracosGrid.appendChild(slot);
+
+    });
+}
+
+
+function adicionarTraco() {
+
+    const ficha = obterFichaAtual();
+
+    if (!ficha) {
+        return;
+    }
+
+    ficha.dados.tracos =
+        normalizarTracos(ficha.dados.tracos);
+
+    ficha.dados.tracos[tracosAbaAtual].push(
+        { nome: "", descricao: "" }
+    );
+
+    salvarFichas();
+
+    renderizarTracos(ficha.dados);
+
+    mostrarStatus(
+        tracosAbaAtual === "positivos"
+            ? "Traço positivo adicionado."
+            : "Traço negativo adicionado."
+    );
+}
+
+
+function removerTraco(indice) {
+
+    const ficha = obterFichaAtual();
+
+    if (!ficha) {
+        return;
+    }
+
+    const lista =
+        ficha.dados.tracos[tracosAbaAtual];
+
+    lista.splice(indice, 1);
+
+    if (lista.length === 0) {
+        lista.push({ nome: "", descricao: "" });
+    }
+
+    salvarFichas();
+
+    renderizarTracos(ficha.dados);
+
+    mostrarStatus("Traço removido.");
 }
 
 
@@ -2347,8 +3195,21 @@ if (btnAdicionarAnotacao) {
 }
 
 
-btnAdicionarVantagem.addEventListener("click", () => {
-    adicionarVantagem();
+btnAdicionarHabilidade.addEventListener("click", () => {
+    adicionarHabilidade();
+});
+
+
+btnAdicionarTraco.addEventListener("click", () => {
+    adicionarTraco();
+});
+
+btnTracosPositivos.addEventListener("click", () => {
+    alternarAbaTracos("positivos");
+});
+
+btnTracosNegativos.addEventListener("click", () => {
+    alternarAbaTracos("negativos");
 });
 
 
@@ -2463,66 +3324,33 @@ function registrarAutosave(elemento, aoSalvar) {
 
 registrarAutosave(nomeInput);
 registrarAutosave(jogadorInput);
+registrarAutosave(racaInput);
+registrarAutosave(especializacaoInput);
+registrarAutosave(estiloCombateInput);
 registrarAutosave(vidaAtualInput);
 registrarAutosave(vidaMaxInput);
+registrarAutosave(espiritoAtualInput);
+registrarAutosave(espiritoMaxInput);
 
 
 /* =========================================================
    MODAL DE ANOTAÇÕES
    ========================================================= */
 
-function atualizarPreviewAnotacoes(dados) {
+function atualizarPreviewAnotacoes() {
 
-    if (!dados) {
-
-        const ficha = obterFichaAtual();
-
-        if (!ficha) {
-            return;
-        }
-
-        dados = ficha.dados;
-    }
+    /*
+     * O texto do botão é fixo de propósito — não muda
+     * conforme o conteúdo das anotações, para servir
+     * sempre como um rótulo estável de "abrir anotações".
+     */
 
     if (!anotacoesPreviewEl) {
         return;
     }
 
-    const anotacoes =
-        Array.isArray(dados.anotacoes)
-            ? dados.anotacoes
-            : [];
-
-    const preenchidas =
-        anotacoes.filter(
-            (item) =>
-                (item.titulo || "").trim() ||
-                (item.texto || "").trim()
-        );
-
-    if (preenchidas.length === 0) {
-
-        anotacoesPreviewEl.textContent =
-            "Toque para ver ou adicionar anotações";
-
-        return;
-    }
-
-    if (preenchidas.length === 1) {
-
-        anotacoesPreviewEl.textContent =
-            preenchidas[0].titulo.trim() ||
-            (
-                preenchidas[0].texto.length > 60
-                    ? preenchidas[0].texto.slice(0, 60) + "…"
-                    : preenchidas[0].texto
-            );
-
-        return;
-    }
-
     anotacoesPreviewEl.textContent =
-        `${preenchidas.length} anotações`;
+        "Toque para ver ou adicionar anotações";
 }
 
 
@@ -3059,7 +3887,7 @@ function processarImportacao(arquivo) {
 
             window.alert(
                 "Não foi possível importar este arquivo.\n\n" +
-                "Verifique se ele é um JSON de ficha ANATEMA válido."
+                "Verifique se ele é um JSON de ficha ANÁTEMA válido."
             );
 
         }
