@@ -2361,3 +2361,79 @@ body.aflicao-maxima .home-frame {
         grid-template-columns: 1fr 1fr;
     }
 }
+
+
+/* =========================================================
+   COMBATE — PAINEL GRANDE (somente a arma em uso)
+   ========================================================= */
+
+.combate-arma-nome-grande {
+    font-size: clamp(1.3rem, 2.4vw, 1.6rem);
+    padding-bottom: 10px;
+}
+
+.combate-value-grande {
+    font-size: clamp(1.15rem, 2vw, 1.35rem);
+    font-weight: 700;
+}
+
+
+/* =========================================================
+   MOCHILA: CAMPOS DE COMBATE DENTRO DO ITEM
+   ========================================================= */
+
+.mochila-combate-fields {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 8px;
+    padding: 8px;
+    background: rgba(0,0,0,0.14);
+    border: 1px solid var(--line-soft);
+}
+
+.mochila-emuso {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    cursor: pointer;
+}
+
+    .mochila-emuso input[type="checkbox"] {
+        flex-shrink: 0;
+        width: 14px;
+        height: 14px;
+        accent-color: var(--blood);
+        cursor: pointer;
+    }
+
+    .mochila-emuso span {
+        color: var(--ink-soft);
+        font-family: 'Special Elite', monospace;
+        font-size: 0.58rem;
+        letter-spacing: 0.03em;
+        text-transform: uppercase;
+    }
+
+.mochila-slot.equipada .mochila-combate-fields {
+    border-color: var(--gold-dark);
+}
+
+
+/* =========================================================
+   MODAL DE ANOTAÇÕES: LISTA COM TÍTULOS
+   ========================================================= */
+
+.modal-anotacoes-box {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.modal-anotacoes-lista {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+}

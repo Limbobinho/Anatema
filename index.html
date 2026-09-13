@@ -371,8 +371,9 @@
                 <div class="inventario">
 
                     <p class="inventario-dica">
-                        Marque um item como arma ou armadura equipada
-                        para que ele apareça na aba de Combate.
+                        Marque o tipo do item como Arma ou Armadura para
+                        preencher os dados dela, e ative "Em uso" para que
+                        conte no Combate ou na Defesa.
                     </p>
 
                     <div class="backpack-header">
@@ -420,65 +421,39 @@
                         <span>✦</span>
                     </h2>
 
-                    <div class="combate-display">
+                    <div class="combate-display combate-painel">
 
-                        <div class="equip-group">
-
-                            <div class="combate-arma-nome"
-                                 id="combateArmaNome">
-                                Nenhuma arma equipada
-                            </div>
-
-                            <div class="combate-row">
-
-                                <label class="combate-subfield">
-                                    <span class="combate-subtag">Dano</span>
-                                    <input type="text"
-                                           id="combateDanoInput"
-                                           class="combate-input combate-input-small"
-                                           placeholder="ex: 2d6">
-                                </label>
-
-                                <label class="combate-subfield">
-                                    <span class="combate-subtag">Tipo</span>
-                                    <select id="combateTipoInput"
-                                            class="combate-select">
-                                        <option value="corpo-a-corpo">Corpo-a-Corpo</option>
-                                        <option value="distancia">Distância</option>
-                                    </select>
-                                </label>
-
-                                <label class="combate-subfield">
-                                    <span class="combate-subtag">Munição</span>
-                                    <input type="text"
-                                           id="combateMunicaoInput"
-                                           class="combate-input combate-input-small"
-                                           placeholder="ex: 6/6">
-                                </label>
-
-                            </div>
-
+                        <div class="combate-arma-nome combate-arma-nome-grande"
+                             id="combateArmaNome">
+                            Nenhuma arma em uso
                         </div>
 
-                        <div class="combate-divider"></div>
+                        <div class="combate-table"
+                             id="combateArmaInfo"
+                             hidden>
 
-                        <div class="equip-group">
-
-                            <div class="combate-arma-nome"
-                                 id="combateArmaduraNome">
-                                Nenhuma armadura equipada
+                            <div class="combate-cell">
+                                <span class="combate-subtag">Dano</span>
+                                <span class="combate-value combate-value-grande"
+                                      id="combateDanoValor">
+                                    —
+                                </span>
                             </div>
 
-                            <div class="combate-row combate-armor-row">
+                            <div class="combate-cell">
+                                <span class="combate-subtag">Tipo</span>
+                                <span class="combate-value combate-value-grande"
+                                      id="combateTipoValor">
+                                    —
+                                </span>
+                            </div>
 
-                                <label class="combate-subfield">
-                                    <span class="combate-subtag">Valor da armadura</span>
-                                    <input type="number"
-                                           id="combateArmaduraValorInput"
-                                           class="combate-input combate-input-small"
-                                           min="0">
-                                </label>
-
+                            <div class="combate-cell">
+                                <span class="combate-subtag">Munição</span>
+                                <span class="combate-value combate-value-grande"
+                                      id="combateMunicaoValor">
+                                    —
+                                </span>
                             </div>
 
                         </div>
@@ -615,9 +590,28 @@
 
             </div>
 
-            <textarea class="panel-textarea notes modal-textarea"
-                      id="anotacoes"
-                      placeholder="anotações livres..."></textarea>
+            <div class="inventario vantagens-box modal-anotacoes-box">
+
+                <div class="backpack-header">
+
+                    <span class="weight-total">
+                        Suas anotações
+                    </span>
+
+                    <button type="button"
+                            class="backpack-add"
+                            id="btnAdicionarAnotacao"
+                            title="Adicionar anotação"
+                            aria-label="Adicionar anotação">
+                        +
+                    </button>
+
+                </div>
+
+                <div class="mochila-list modal-anotacoes-lista"
+                     id="anotacoesGrid"></div>
+
+            </div>
 
         </div>
 

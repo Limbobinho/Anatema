@@ -49,7 +49,8 @@ const vidaAtualInput = document.getElementById("vidaAtual");
 const vidaMaxInput = document.getElementById("vidaMax");
 const defesaValorEl = document.getElementById("defesaValor");
 
-const anotacoesInput = document.getElementById("anotacoes");
+const anotacoesGrid = document.getElementById("anotacoesGrid");
+const btnAdicionarAnotacao = document.getElementById("btnAdicionarAnotacao");
 
 const btnAbrirAnotacoes = document.getElementById("btnAbrirAnotacoes");
 const anotacoesModalOverlay = document.getElementById("anotacoesModalOverlay");
@@ -74,12 +75,10 @@ const inputFotoPerfil = document.getElementById("inputFotoPerfil");
 const btnRemoverFoto = document.getElementById("btnRemoverFoto");
 
 const combateArmaNomeEl = document.getElementById("combateArmaNome");
-const combateDanoInput = document.getElementById("combateDanoInput");
-const combateTipoInput = document.getElementById("combateTipoInput");
-const combateMunicaoInput = document.getElementById("combateMunicaoInput");
-
-const combateArmaduraNomeEl = document.getElementById("combateArmaduraNome");
-const combateArmaduraValorInput = document.getElementById("combateArmaduraValorInput");
+const combateArmaInfoEl = document.getElementById("combateArmaInfo");
+const combateDanoValorEl = document.getElementById("combateDanoValor");
+const combateTipoValorEl = document.getElementById("combateTipoValor");
+const combateMunicaoValorEl = document.getElementById("combateMunicaoValor");
 
 const defesaBoxEl = document.getElementById("defesaBox");
 
@@ -133,6 +132,7 @@ function criarItemMochilaVazio() {
         peso: 0,
 
         equipado: "",
+        emUso: false,
 
         /*
          * Estatísticas de combate: pertencem ao item,
@@ -145,6 +145,21 @@ function criarItemMochilaVazio() {
         municao: "",
         valorArmadura: ""
     };
+}
+
+
+function criarAnotacaoVazia() {
+    return {
+        titulo: "",
+        texto: ""
+    };
+}
+
+
+function criarAnotacoesIniciais() {
+    return [
+        criarAnotacaoVazia()
+    ];
 }
 
 
@@ -180,7 +195,7 @@ function criarEstadoVazio() {
 
         vantagens: criarVantagensIniciais(),
 
-        anotacoes: ""
+        anotacoes: criarAnotacoesIniciais()
     };
 }
 
@@ -393,13 +408,66 @@ function normalizarEstado(dados = {}) {
     }
 
 
-    estado.anotacoes =
-        typeof dados.anotacoes === "string"
-            ? dados.anotacoes
-            : "";
+    /*
+     * Compatibilidade: versões antigas guardavam
+     * Anotações como um único texto livre.
+     */
+
+    if (typeof dados.anotacoes === "string") {
+
+        estado.anotacoes =
+            dados.anotacoes.trim()
+                ? [{ titulo: "", texto: dados.anotacoes }]
+                : criarAnotacoesIniciais();
+
+    } else {
+
+        estado.anotacoes =
+            normalizarAnotacoes(dados.anotacoes);
+
+    }
 
 
     return estado;
+}
+
+
+function normalizarAnotacoes(anotacoes) {
+
+    if (!Array.isArray(anotacoes)) {
+        return criarAnotacoesIniciais();
+    }
+
+    const resultado = anotacoes.map((item) => {
+
+        if (item && typeof item === "object") {
+
+            return {
+                titulo:
+                    typeof item.titulo === "string"
+                        ? item.titulo
+                        : "",
+
+                texto:
+                    typeof item.texto === "string"
+                        ? item.texto
+                        : ""
+            };
+
+        }
+
+        return {
+            titulo: "",
+            texto: typeof item === "string" ? item : ""
+        };
+
+    });
+
+    if (resultado.length === 0) {
+        return criarAnotacoesIniciais();
+    }
+
+    return resultado;
 }
 
 
@@ -549,6 +617,8 @@ function normalizarMochila(mochila) {
 
                 equipado: normalizarEquipado(item.equipado),
 
+                emUso: Boolean(item.emUso),
+
                 dano:
                     typeof item.dano === "string"
                         ? item.dano
@@ -596,29 +666,45 @@ function normalizarMochila(mochila) {
 
 
     /*
-     * Garante que só exista um item equipado
-     * como arma e um item equipado como armadura.
+     * Um item sem categoria (comum) não pode
+     * estar "em uso".
      */
-
-    let armaEncontrada = false;
-    let armaduraEncontrada = false;
 
     for (const item of resultado) {
 
-        if (item.equipado === "arma") {
+        if (!item.equipado) {
+            item.emUso = false;
+        }
 
-            if (armaEncontrada) {
-                item.equipado = "";
+    }
+
+
+    /*
+     * Só um item pode estar "em uso" como arma,
+     * e só um pode estar "em uso" como armadura.
+     * (Vários itens podem ter a mesma categoria —
+     * só não podem estar todos em uso ao mesmo tempo.)
+     */
+
+    let armaEmUso = false;
+    let armaduraEmUso = false;
+
+    for (const item of resultado) {
+
+        if (item.equipado === "arma" && item.emUso) {
+
+            if (armaEmUso) {
+                item.emUso = false;
             } else {
-                armaEncontrada = true;
+                armaEmUso = true;
             }
 
-        } else if (item.equipado === "armadura") {
+        } else if (item.equipado === "armadura" && item.emUso) {
 
-            if (armaduraEncontrada) {
-                item.equipado = "";
+            if (armaduraEmUso) {
+                item.emUso = false;
             } else {
-                armaduraEncontrada = true;
+                armaduraEmUso = true;
             }
 
         }
@@ -978,8 +1064,7 @@ function carregarFichaAtual() {
     vidaMaxInput.value =
         dados.vidaMax;
 
-    anotacoesInput.value =
-        dados.anotacoes;
+    renderizarAnotacoes(dados);
 
     atualizarPreviewAnotacoes(dados);
 
@@ -1166,9 +1251,6 @@ function salvarEstadoDaInterface() {
     dados.vidaMax =
         vidaMaxInput.value;
 
-    dados.anotacoes =
-        anotacoesInput.value;
-
 
     for (const input of inventarioInputs) {
 
@@ -1177,34 +1259,6 @@ function salvarEstadoDaInterface() {
 
         dados.inventario[chave] =
             input.value;
-
-    }
-
-
-    const armaEquipada =
-        obterItemEquipado(dados, "arma");
-
-    if (armaEquipada) {
-
-        armaEquipada.dano =
-            combateDanoInput.value;
-
-        armaEquipada.tipo =
-            combateTipoInput.value;
-
-        armaEquipada.municao =
-            combateMunicaoInput.value;
-
-    }
-
-
-    const armaduraEquipada =
-        obterItemEquipado(dados, "armadura");
-
-    if (armaduraEquipada) {
-
-        armaduraEquipada.valorArmadura =
-            combateArmaduraValorInput.value;
 
     }
 
@@ -1431,7 +1485,7 @@ function renderizarMochila(dados) {
                         : ""
                 ) +
                 (
-                    item.equipado
+                    item.emUso
                         ? " equipada"
                         : ""
                 );
@@ -1547,9 +1601,9 @@ function renderizarMochila(dados) {
             );
 
             const opcoesEquipar = [
-                { valor: "", texto: "Não equipado" },
-                { valor: "arma", texto: "Arma equipada" },
-                { valor: "armadura", texto: "Armadura equipada" }
+                { valor: "", texto: "Item comum" },
+                { valor: "arma", texto: "Arma" },
+                { valor: "armadura", texto: "Armadura" }
             ];
 
             for (const opcaoInfo of opcoesEquipar) {
@@ -1565,6 +1619,235 @@ function renderizarMochila(dados) {
 
             equipar.value =
                 item.equipado || "";
+
+
+            let camposCombate = null;
+
+            if (item.equipado === "arma" || item.equipado === "armadura") {
+
+                camposCombate =
+                    document.createElement("div");
+
+                camposCombate.className =
+                    "mochila-combate-fields";
+
+
+                if (item.equipado === "arma") {
+
+                    const linha =
+                        document.createElement("div");
+
+                    linha.className = "combate-row";
+
+
+                    const campoDano =
+                        document.createElement("label");
+
+                    campoDano.className = "combate-subfield";
+
+                    const tagDano =
+                        document.createElement("span");
+
+                    tagDano.className = "combate-subtag";
+                    tagDano.textContent = "Dano";
+
+                    const inputDano =
+                        document.createElement("input");
+
+                    inputDano.type = "text";
+                    inputDano.className = "combate-input combate-input-small";
+                    inputDano.placeholder = "ex: 2d6";
+                    inputDano.value = item.dano || "";
+
+                    inputDano.addEventListener("input", () => {
+                        dados.mochila[indice].dano = inputDano.value;
+                        salvarFichas();
+                        atualizarCombateDisplay(dados);
+                    });
+
+                    campoDano.appendChild(tagDano);
+                    campoDano.appendChild(inputDano);
+
+
+                    const campoTipo =
+                        document.createElement("label");
+
+                    campoTipo.className = "combate-subfield";
+
+                    const tagTipo =
+                        document.createElement("span");
+
+                    tagTipo.className = "combate-subtag";
+                    tagTipo.textContent = "Tipo";
+
+                    const selectTipo =
+                        document.createElement("select");
+
+                    selectTipo.className = "combate-select";
+
+                    for (const [valor, texto] of [
+                        ["corpo-a-corpo", "Corpo-a-Corpo"],
+                        ["distancia", "Distância"]
+                    ]) {
+
+                        const opcao =
+                            document.createElement("option");
+
+                        opcao.value = valor;
+                        opcao.textContent = texto;
+
+                        selectTipo.appendChild(opcao);
+                    }
+
+                    selectTipo.value = item.tipo || "corpo-a-corpo";
+
+                    selectTipo.addEventListener("change", () => {
+                        dados.mochila[indice].tipo = selectTipo.value;
+                        salvarFichas();
+                        atualizarCombateDisplay(dados);
+                    });
+
+                    campoTipo.appendChild(tagTipo);
+                    campoTipo.appendChild(selectTipo);
+
+
+                    const campoMunicao =
+                        document.createElement("label");
+
+                    campoMunicao.className = "combate-subfield";
+
+                    const tagMunicao =
+                        document.createElement("span");
+
+                    tagMunicao.className = "combate-subtag";
+                    tagMunicao.textContent = "Munição";
+
+                    const inputMunicao =
+                        document.createElement("input");
+
+                    inputMunicao.type = "text";
+                    inputMunicao.className = "combate-input combate-input-small";
+                    inputMunicao.placeholder = "ex: 6/6";
+                    inputMunicao.value = item.municao || "";
+
+                    inputMunicao.addEventListener("input", () => {
+                        dados.mochila[indice].municao = inputMunicao.value;
+                        salvarFichas();
+                        atualizarCombateDisplay(dados);
+                    });
+
+                    campoMunicao.appendChild(tagMunicao);
+                    campoMunicao.appendChild(inputMunicao);
+
+
+                    linha.appendChild(campoDano);
+                    linha.appendChild(campoTipo);
+                    linha.appendChild(campoMunicao);
+
+                    camposCombate.appendChild(linha);
+
+                }
+
+
+                if (item.equipado === "armadura") {
+
+                    const linha =
+                        document.createElement("div");
+
+                    linha.className = "combate-row";
+
+
+                    const campoValor =
+                        document.createElement("label");
+
+                    campoValor.className = "combate-subfield";
+
+                    const tagValor =
+                        document.createElement("span");
+
+                    tagValor.className = "combate-subtag";
+                    tagValor.textContent = "Valor da armadura";
+
+                    const inputValor =
+                        document.createElement("input");
+
+                    inputValor.type = "number";
+                    inputValor.min = "0";
+                    inputValor.className = "combate-input combate-input-small";
+                    inputValor.value = item.valorArmadura ?? "";
+
+                    inputValor.addEventListener("input", () => {
+                        dados.mochila[indice].valorArmadura = inputValor.value;
+                        salvarFichas();
+                        atualizarDefesaValor(dados);
+                    });
+
+                    campoValor.appendChild(tagValor);
+                    campoValor.appendChild(inputValor);
+
+                    linha.appendChild(campoValor);
+
+                    camposCombate.appendChild(linha);
+
+                }
+
+
+                const linhaEmUso =
+                    document.createElement("label");
+
+                linhaEmUso.className = "mochila-emuso";
+
+                const checkboxEmUso =
+                    document.createElement("input");
+
+                checkboxEmUso.type = "checkbox";
+                checkboxEmUso.checked = Boolean(item.emUso);
+
+                const textoEmUso =
+                    document.createElement("span");
+
+                textoEmUso.textContent =
+                    item.equipado === "arma"
+                        ? "Em uso (aparece no Combate)"
+                        : "Em uso (conta na Defesa)";
+
+                checkboxEmUso.addEventListener("change", () => {
+
+                    const novoValor = checkboxEmUso.checked;
+
+                    if (novoValor) {
+
+                        for (const outroItem of dados.mochila) {
+
+                            if (
+                                outroItem !== dados.mochila[indice] &&
+                                outroItem.equipado === item.equipado
+                            ) {
+                                outroItem.emUso = false;
+                            }
+
+                        }
+
+                    }
+
+                    dados.mochila[indice].emUso = novoValor;
+
+                    salvarFichas();
+
+                    renderizarMochila(dados);
+
+                    atualizarCombateDisplay(dados);
+
+                    atualizarDefesaValor(dados);
+
+                });
+
+                linhaEmUso.appendChild(checkboxEmUso);
+                linhaEmUso.appendChild(textoEmUso);
+
+                camposCombate.appendChild(linhaEmUso);
+
+            }
 
 
             const remover =
@@ -1637,32 +1920,25 @@ function renderizarMochila(dados) {
                     const novoValor =
                         normalizarEquipado(equipar.value);
 
-
-                    /*
-                     * Só um item pode ser a arma equipada,
-                     * e só um pode ser a armadura equipada.
-                     */
-
-                    if (novoValor) {
-
-                        for (const outroItem of dados.mochila) {
-
-                            if (outroItem.equipado === novoValor) {
-                                outroItem.equipado = "";
-                            }
-
-                        }
-
-                    }
-
                     dados.mochila[indice].equipado =
                         novoValor;
+
+                    /*
+                     * Trocar a categoria do item sempre
+                     * desmarca "em uso" — o jogador precisa
+                     * confirmar de novo, pra não herdar o
+                     * estado de uma categoria diferente.
+                     */
+
+                    dados.mochila[indice].emUso = false;
 
                     salvarFichas();
 
                     renderizarMochila(dados);
 
                     atualizarCombateDisplay(dados);
+
+                    atualizarDefesaValor(dados);
 
                 }
             );
@@ -1693,6 +1969,10 @@ function renderizarMochila(dados) {
             head.appendChild(equipar);
 
             slot.appendChild(head);
+
+            if (camposCombate) {
+                slot.appendChild(camposCombate);
+            }
 
             slot.appendChild(descricao);
 
@@ -1902,6 +2182,171 @@ function removerVantagem(indice) {
 }
 
 
+/* =========================================================
+   ANOTAÇÕES (LISTA COM TÍTULOS, DENTRO DO POPUP)
+   ========================================================= */
+
+function renderizarAnotacoes(dados) {
+
+    dados.anotacoes =
+        normalizarAnotacoes(dados.anotacoes);
+
+    if (!anotacoesGrid) {
+        return;
+    }
+
+    anotacoesGrid.innerHTML = "";
+
+
+    dados.anotacoes.forEach((item, indice) => {
+
+        const slot =
+            document.createElement("div");
+
+        slot.className = "mochila-slot expanded";
+
+
+        const head =
+            document.createElement("div");
+
+        head.className = "mochila-slot-head";
+
+
+        const numero =
+            document.createElement("span");
+
+        numero.className = "mochila-number";
+
+        numero.textContent = String(indice + 1);
+
+
+        const titulo =
+            document.createElement("input");
+
+        titulo.type = "text";
+
+        titulo.className = "mochila-name";
+
+        titulo.placeholder = "título da anotação";
+
+        titulo.value = item.titulo || "";
+
+
+        const texto =
+            document.createElement("textarea");
+
+        texto.className = "mochila-description";
+
+        texto.placeholder =
+            "escreva aqui...";
+
+        texto.value = item.texto || "";
+
+
+        const remover =
+            document.createElement("button");
+
+        remover.type = "button";
+
+        remover.className = "mochila-remove";
+
+        remover.textContent = "×";
+
+        remover.title = "Remover esta anotação";
+
+        remover.setAttribute(
+            "aria-label",
+            `Remover anotação ${indice + 1}`
+        );
+
+
+        titulo.addEventListener("input", () => {
+            dados.anotacoes[indice].titulo = titulo.value;
+            salvarFichas();
+            atualizarPreviewAnotacoes(dados);
+        });
+
+        texto.addEventListener("input", () => {
+            dados.anotacoes[indice].texto = texto.value;
+            salvarFichas();
+            atualizarPreviewAnotacoes(dados);
+        });
+
+        remover.addEventListener("click", () => {
+            removerAnotacao(indice);
+        });
+
+
+        slot.appendChild(numero);
+
+        slot.appendChild(remover);
+
+        head.appendChild(titulo);
+
+        slot.appendChild(head);
+
+        slot.appendChild(texto);
+
+        anotacoesGrid.appendChild(slot);
+
+    });
+}
+
+
+function adicionarAnotacao() {
+
+    const ficha = obterFichaAtual();
+
+    if (!ficha) {
+        return;
+    }
+
+    ficha.dados.anotacoes =
+        normalizarAnotacoes(ficha.dados.anotacoes);
+
+    ficha.dados.anotacoes.push(criarAnotacaoVazia());
+
+    salvarFichas();
+
+    renderizarAnotacoes(ficha.dados);
+
+    mostrarStatus("Anotação adicionada.");
+}
+
+
+function removerAnotacao(indice) {
+
+    const ficha = obterFichaAtual();
+
+    if (!ficha) {
+        return;
+    }
+
+    ficha.dados.anotacoes.splice(indice, 1);
+
+    if (ficha.dados.anotacoes.length === 0) {
+        ficha.dados.anotacoes.push(criarAnotacaoVazia());
+    }
+
+    salvarFichas();
+
+    renderizarAnotacoes(ficha.dados);
+
+    atualizarPreviewAnotacoes(ficha.dados);
+
+    mostrarStatus("Anotação removida.");
+}
+
+
+if (btnAdicionarAnotacao) {
+
+    btnAdicionarAnotacao.addEventListener("click", () => {
+        adicionarAnotacao();
+    });
+
+}
+
+
 btnAdicionarVantagem.addEventListener("click", () => {
     adicionarVantagem();
 });
@@ -2020,10 +2465,6 @@ registrarAutosave(nomeInput);
 registrarAutosave(jogadorInput);
 registrarAutosave(vidaAtualInput);
 registrarAutosave(vidaMaxInput);
-registrarAutosave(
-    anotacoesInput,
-    () => atualizarPreviewAnotacoes()
-);
 
 
 /* =========================================================
@@ -2047,29 +2488,47 @@ function atualizarPreviewAnotacoes(dados) {
         return;
     }
 
-    const texto =
-        (dados.anotacoes || "").trim();
+    const anotacoes =
+        Array.isArray(dados.anotacoes)
+            ? dados.anotacoes
+            : [];
 
-    if (!texto) {
+    const preenchidas =
+        anotacoes.filter(
+            (item) =>
+                (item.titulo || "").trim() ||
+                (item.texto || "").trim()
+        );
+
+    if (preenchidas.length === 0) {
 
         anotacoesPreviewEl.textContent =
-            "Toque para ver ou editar suas anotações";
+            "Toque para ver ou adicionar anotações";
+
+        return;
+    }
+
+    if (preenchidas.length === 1) {
+
+        anotacoesPreviewEl.textContent =
+            preenchidas[0].titulo.trim() ||
+            (
+                preenchidas[0].texto.length > 60
+                    ? preenchidas[0].texto.slice(0, 60) + "…"
+                    : preenchidas[0].texto
+            );
 
         return;
     }
 
     anotacoesPreviewEl.textContent =
-        texto.length > 90
-            ? texto.slice(0, 90) + "…"
-            : texto;
+        `${preenchidas.length} anotações`;
 }
 
 
 function abrirModalAnotacoes() {
 
     anotacoesModalOverlay.hidden = false;
-
-    anotacoesInput.focus();
 }
 
 
@@ -2177,7 +2636,7 @@ function atualizarDefesaValor(dados) {
 function obterItemEquipado(dados, tipo) {
 
     return dados.mochila.find(
-        item => item.equipado === tipo
+        item => item.equipado === tipo && item.emUso
     ) || null;
 }
 
@@ -2198,64 +2657,31 @@ function atualizarCombateDisplay(dados) {
     const armaItem =
         obterItemEquipado(dados, "arma");
 
-    const armaduraItem =
-        obterItemEquipado(dados, "armadura");
+    if (armaItem) {
 
+        combateArmaNomeEl.textContent =
+            armaItem.nome.trim() || "(sem nome)";
 
-    combateArmaNomeEl.textContent =
-        armaItem
-            ? (armaItem.nome.trim() || "(sem nome)")
-            : "Nenhuma arma equipada";
+        combateArmaInfoEl.hidden = false;
 
-    combateDanoInput.disabled = !armaItem;
-    combateTipoInput.disabled = !armaItem;
-    combateMunicaoInput.disabled = !armaItem;
+        combateDanoValorEl.textContent =
+            (armaItem.dano || "").trim() || "—";
 
-    /*
-     * Cada arma guarda os próprios valores. Ao trocar de arma
-     * equipada, os campos passam a mostrar os dados daquele
-     * item específico — não os da arma equipada anteriormente.
-     */
+        combateTipoValorEl.textContent =
+            armaItem.tipo === "distancia" ? "Distância" : "Corpo-a-Corpo";
 
-    combateDanoInput.value =
-        armaItem ? (armaItem.dano || "") : "";
+        combateMunicaoValorEl.textContent =
+            (armaItem.municao || "").trim() || "—";
 
-    combateTipoInput.value =
-        armaItem ? (armaItem.tipo || "corpo-a-corpo") : "corpo-a-corpo";
+    } else {
 
-    combateMunicaoInput.value =
-        armaItem ? (armaItem.municao || "") : "";
+        combateArmaNomeEl.textContent =
+            "Nenhuma arma em uso";
 
+        combateArmaInfoEl.hidden = true;
 
-    combateArmaduraNomeEl.textContent =
-        armaduraItem
-            ? (armaduraItem.nome.trim() || "(sem nome)")
-            : "Nenhuma armadura equipada";
-
-    combateArmaduraValorInput.disabled = !armaduraItem;
-
-    combateArmaduraValorInput.value =
-        armaduraItem ? (armaduraItem.valorArmadura ?? "") : "";
+    }
 }
-
-
-for (const input of [combateDanoInput, combateTipoInput, combateMunicaoInput]) {
-
-    registrarAutosave(input);
-
-}
-
-
-combateArmaduraValorInput.addEventListener("input", () => {
-
-    salvarEstadoDaInterface();
-
-    salvarFichas();
-
-    atualizarAbasSemTrocar();
-
-    atualizarDefesaValor();
-});
 
 
 /* =========================================================
